@@ -7,3 +7,9 @@ rogue:
 	cp ./src/rogue54.exe ./
 	cp ./src/rogue54.doc ./
 	cp ./src/rogue54.html ./
+
+# make is stupid sometimes
+.PHONY: server
+server: server.exe
+server.exe: server/*.c
+	$(MINGW) server/*.c -lWs2_32 -o server -std=c99 -pedantic

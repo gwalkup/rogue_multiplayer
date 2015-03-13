@@ -30,7 +30,7 @@ struct socket_passer
 
 DWORD WINAPI client_worker(struct socket_passer *env)
 {
-    run_client(env->client_sock, player);
+    run_client(env->client_sock, env->player);
     free(env);
 }
 
@@ -125,7 +125,5 @@ void start_listening(const char *port)
         WSACleanup();
         exit(EXIT_FAILURE);
     }
-    
-    run_server();
 }
 

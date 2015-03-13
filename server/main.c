@@ -47,18 +47,11 @@ int main(int argc, char *argv[])
     find_opt_string(argc, argv, "port", &port);
     if(port == NULL){ fprintf(stderr, "specify a port\n"); return 0; }
     
-    
-    
     start_listening(port);
     
+    // now we run the main thing
+    //run_game();
     
-    
-    
-    
-    
-    
-    
-    printf("%s\n", port);
     
     return 0;
 }
