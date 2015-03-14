@@ -39,7 +39,7 @@ CC       = gcc
 MINGW 	 = x86_64-w64-mingw32-gcc
 FEATURES = -DALLSCORES -DSCOREFILE=\"$(SCOREFILE)\" -DLOCKFILE=\"$(LOCKFILE)\"
 CPPFLAGS =
-CFLAGS   = -O3
+CFLAGS   = -g -O3
 LDFLAGS  =
 LIBS     =
 RM       = rm -f
@@ -133,7 +133,7 @@ dist.cygwin:
 #
 dist.mingw32:
 	@$(MAKE) $(MAKEFILE) --no-print-directory RM="cmd /c del" clean
-	@$(MAKE) $(MAKEFILE) --no-print-directory CPPFLAGS="-I../pdcurses" CC="$(MINGW)" LIBS="../pdcurses/pdcurses.a" $(PROGRAM)
+	@$(MAKE) $(MAKEFILE) --no-print-directory CPPFLAGS="-I../include" CC="$(MINGW)" LIBS="../pdcurses/pdcurses.a" $(PROGRAM)
 	
 dist.djgpp:
 	@$(MAKE) $(MAKEFILE) --no-print-directory clean

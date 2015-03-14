@@ -29,7 +29,7 @@ command()
     THING *mp;
     static char countch, direction, newcount = FALSE;
 
-    if (on(player, ISHASTE))
+    if (on(players[currplayer].player, ISHASTE))
 	ntimes++;
     /*
      * Let the daemons start up
@@ -38,7 +38,7 @@ command()
     do_fuses(BEFORE);
     while (ntimes--)
     {
-	again = FALSE;
+	players[currplayer].again = FALSE;
 	if (has_hit)
 	{
 	    endmsg();
@@ -48,16 +48,16 @@ command()
 	 * these are illegal things for the player to be, so if any are
 	 * set, someone's been poking in memeory
 	 */
-	if (on(player, ISSLOW|ISGREED|ISINVIS|ISREGEN|ISTARGET))
+	if (on(players[currplayer].player, ISSLOW|ISGREED|ISINVIS|ISREGEN|ISTARGET))
 	    exit(1);
 
 	look(TRUE);
-	if (!running)
+	if (!players[currplayer].running)
 	    door_stop = FALSE;
 	status();
 	lastscore = purse;
 	move(hero.y, hero.x);
-	if (!((running || count) && jump))
+	if (!((players[currplayer].running || players[currplayer].count) && jump))
 	    refresh();			/* Draw screen */
 	take = 0;
 	after = TRUE;
@@ -68,28 +68,28 @@ command()
 	if (wizard)
 	    noscore = TRUE;
 #endif
-	if (!no_command)
+	if (!players[currplayer].no_command)
 	{
-	    if (running || to_death)
-		ch = runch;
-	    else if (count)
-		ch = countch;
+	    if (players[currplayer].running || players[currplayer].to_death)
+			ch = players[currplayer].runch;
+	    else if (players[currplayer].count)
+			ch = countch;
 	    else
 	    {
-		ch = readchar();
-		move_on = FALSE;
-		if (mpos != 0)		/* Erase message if its there */
-		    msg("");
+			ch = readchar();
+			players[currplayer].move_on = FALSE;
+			if (mpos != 0)		/* Erase message if its there */
+				msg("");
 	    }
 	}
 	else
 	    ch = '.';
-	if (no_command)
+	if (players[currplayer].no_command)
 	{
-	    if (--no_command == 0)
+	    if (--players[currplayer].no_command == 0)
 	    {
-		player.t_flags |= ISRUN;
-		msg("you can move again");
+			players[currplayer].player.t_flags |= ISRUN;
+			msg("you can move again");
 	    }
 	}
 	else
@@ -100,52 +100,52 @@ command()
 	    newcount = FALSE;
 	    if (isdigit(ch))
 	    {
-		count = 0;
-		newcount = TRUE;
-		while (isdigit(ch))
-		{
-		    count = count * 10 + (ch - '0');
-		    if (count > 255)
-			count = 255;
-		    ch = readchar();
-		}
-		countch = ch;
-		/*
-		 * turn off count for commands which don't make sense
-		 * to repeat
-		 */
-		switch (ch)
-		{
-		    case CTRL('B'): case CTRL('H'): case CTRL('J'):
-		    case CTRL('K'): case CTRL('L'): case CTRL('N'):
-		    case CTRL('U'): case CTRL('Y'):
-		    case '.': case 'a': case 'b': case 'h': case 'j':
-		    case 'k': case 'l': case 'm': case 'n': case 'q':
-		    case 'r': case 's': case 't': case 'u': case 'y':
-		    case 'z': case 'B': case 'C': case 'H': case 'I':
-		    case 'J': case 'K': case 'L': case 'N': case 'U':
-		    case 'Y':
-#ifdef MASTER
-		    case CTRL('D'): case CTRL('A'):
-#endif
-			break;
-		    default:
-			count = 0;
-		}
+			players[currplayer].count = 0;
+			newcount = TRUE;
+			while (isdigit(ch))
+			{
+				players[currplayer].count = players[currplayer].count * 10 + (ch - '0');
+				if (players[currplayer].count > 255)
+				players[currplayer].count = 255;
+				ch = readchar();
+			}
+			countch = ch;
+			/*
+			 * turn off count for commands which don't make sense
+			 * to repeat
+			 */
+			switch (ch)
+			{
+				case CTRL('B'): case CTRL('H'): case CTRL('J'):
+				case CTRL('K'): case CTRL('L'): case CTRL('N'):
+				case CTRL('U'): case CTRL('Y'):
+				case '.': case 'a': case 'b': case 'h': case 'j':
+				case 'k': case 'l': case 'm': case 'n': case 'q':
+				case 'r': case 's': case 't': case 'u': case 'y':
+				case 'z': case 'B': case 'C': case 'H': case 'I':
+				case 'J': case 'K': case 'L': case 'N': case 'U':
+				case 'Y':
+	#ifdef MASTER
+				case CTRL('D'): case CTRL('A'):
+	#endif
+				break;
+				default:
+				players[currplayer].count = 0;
+			}
 	    }
 	    /*
 	     * execute a command
 	     */
-	    if (count && !running)
-		count--;
-	    if (ch != 'a' && ch != ESCAPE && !(running || count || to_death))
+	    if (players[currplayer].count && !players[currplayer].running)
+			players[currplayer].count--;
+	    if (ch != 'a' && ch != ESCAPE && !(players[currplayer].running || players[currplayer].count || players[currplayer].to_death))
 	    {
-		l_last_comm = last_comm;
-		l_last_dir = last_dir;
-		l_last_pick = last_pick;
-		last_comm = ch;
-		last_dir = '\0';
-		last_pick = NULL;
+			l_last_comm = last_comm;
+			l_last_dir = last_dir;
+			players[currplayer].l_last_pick = players[currplayer].last_pick;
+			last_comm = ch;
+			last_dir = '\0';
+			players[currplayer].last_pick = NULL;
 	    }
 over:
 	    switch (ch)
@@ -197,12 +197,12 @@ over:
 		when CTRL('H'): case CTRL('J'): case CTRL('K'): case CTRL('L'):
 		case CTRL('Y'): case CTRL('U'): case CTRL('B'): case CTRL('N'):
 		{
-		    if (!on(player, ISBLIND))
+		    if (!on(players[currplayer].player, ISBLIND))
 		    {
 			door_stop = TRUE;
 			firstmove = TRUE;
 		    }
-		    if (count && !newcount)
+		    if (players[currplayer].count && !newcount)
 			ch = direction;
 		    else
 		    {
@@ -212,47 +212,47 @@ over:
 		    goto over;
 		}
 		when 'F':
-		    kamikaze = TRUE;
+		    players[currplayer].kamikaze = TRUE;
 		    /* FALLTHROUGH */
 		case 'f':
 		    if (!get_dir())
 		    {
-			after = FALSE;
-			break;
+				after = FALSE;
+				break;
 		    }
 		    delta.y += hero.y;
 		    delta.x += hero.x;
 		    if ( ((mp = moat(delta.y, delta.x)) == NULL)
-			|| ((!see_monst(mp)) && !on(player, SEEMONST)))
+			|| ((!see_monst(mp)) && !on(players[currplayer].player, SEEMONST)))
 		    {
-			if (!terse)
-			    addmsg("I see ");
-			msg("no monster there");
-			after = FALSE;
+				if (!terse)
+					addmsg("I see ");
+				msg("no monster there");
+				after = FALSE;
 		    }
 		    else if (diag_ok(&hero, &delta))
 		    {
-			to_death = TRUE;
-			max_hit = 0;
-			mp->t_flags |= ISTARGET;
-			runch = ch = dir_ch;
-			goto over;
+				players[currplayer].to_death = TRUE;
+				max_hit = 0;
+				mp->t_flags |= ISTARGET;
+				players[currplayer].runch = ch = dir_ch;
+				goto over;
 		    }
 		when 't':
 		    if (!get_dir())
-			after = FALSE;
+				after = FALSE;
 		    else
-			missile(delta.y, delta.x);
+				missile(delta.y, delta.x);
 		when 'a':
 		    if (last_comm == '\0')
 		    {
-			msg("you haven't typed a command yet");
-			after = FALSE;
+				msg("you haven't typed a command yet");
+				after = FALSE;
 		    }
 		    else
 		    {
 			ch = last_comm;
-			again = TRUE;
+			players[currplayer].again = TRUE;
 			goto over;
 		    }
 		when 'q': quaff();
@@ -307,7 +307,7 @@ over:
                             addmsg("You have found ");
 			if (chat(delta.y, delta.x) != TRAP)
 			    msg("no trap there");
-			else if (on(player, ISHALU))
+			else if (on(players[currplayer].player, ISHALU))
 			    msg(tr_name[rnd(NTRAPS)]);
 			else {
 			    msg(tr_name[*fp & F_TMASK]);
@@ -338,11 +338,11 @@ over:
 #endif
 		when ESCAPE:	/* Escape */
 		    door_stop = FALSE;
-		    count = 0;
+		    players[currplayer].count = 0;
 		    after = FALSE;
-		    again = FALSE;
+		    players[currplayer].again = FALSE;
 		when 'm':
-		    move_on = TRUE;
+		    players[currplayer].move_on = TRUE;
 		    if (!get_dir())
 			after = FALSE;
 		    else
@@ -351,12 +351,12 @@ over:
 			countch = dir_ch;
 			goto over;
 		    }
-		when ')': current(cur_weapon, "wielding", NULL);
-		when ']': current(cur_armor, "wearing", NULL);
+		when ')': current(players[currplayer].cur_weapon, "wielding", NULL);
+		when ']': current(players[currplayer].cur_armor, "wearing", NULL);
 		when '=':
-		    current(cur_ring[LEFT], "wearing",
+		    current(players[currplayer].cur_ring[LEFT], "wearing",
 					    terse ? "(L)" : "on left hand");
-		    current(cur_ring[RIGHT], "wearing",
+		    current(players[currplayer].cur_ring[RIGHT], "wearing",
 					    terse ? "(R)" : "on right hand");
 		when '@':
 		    stat_msg = TRUE;
@@ -370,16 +370,16 @@ over:
 		    {
 			case '|': msg("@ %d,%d", hero.y, hero.x);
 			when 'C': create_obj();
-			when '$': msg("inpack = %d", inpack);
+			when '$': msg("inpack = %d", players[currplayer].inpack);
 			when CTRL('G'): inventory(lvl_obj, 0);
 			when CTRL('W'): whatis(FALSE, 0);
 			when CTRL('D'): level++; new_level();
 			when CTRL('A'): level--; new_level();
 			when CTRL('F'): show_map();
 			when CTRL('T'): teleport();
-			when CTRL('E'): msg("food left: %d", food_left);
+			when CTRL('E'): msg("food left: %d", players[currplayer].food_left);
 			when CTRL('C'): add_pass();
-			when CTRL('X'): turn_see(on(player, SEEMONST));
+			when CTRL('X'): turn_see(on(players[currplayer].player, SEEMONST));
 			when CTRL('~'):
 			{
 			    THING *item;
@@ -402,7 +402,7 @@ over:
 			    obj->o_hplus = 1;
 			    obj->o_dplus = 1;
 			    add_pack(obj, TRUE);
-			    cur_weapon = obj;
+			    players[currplayer].cur_weapon = obj;
 			    /*
 			     * And his suit of armor
 			     */
@@ -413,7 +413,7 @@ over:
 			    obj->o_flags |= ISKNOW;
 			    obj->o_count = 1;
 			    obj->o_group = 0;
-			    cur_armor = obj;
+			    players[currplayer].cur_armor = obj;
 			    add_pack(obj, TRUE);
 			}
 			when '*' :
@@ -428,7 +428,7 @@ over:
 	    /*
 	     * turn off flags if no longer needed
 	     */
-	    if (!running)
+	    if (!players[currplayer].running)
 		door_stop = FALSE;
 	}
 	/*
@@ -436,7 +436,7 @@ over:
 	 */
 	if (take != 0)
 	    pick_up(take);
-	if (!running)
+	if (!players[currplayer].running)
 	    door_stop = FALSE;
 	if (!after)
 	    ntimes++;
@@ -461,7 +461,7 @@ void
 illcom(int ch)
 {
     save_msg = FALSE;
-    count = 0;
+    players[currplayer].count = 0;
     msg("illegal command '%s'", unctrl(ch));
     save_msg = TRUE;
 }
@@ -481,8 +481,8 @@ search()
 
     ey = hero.y + 1;
     ex = hero.x + 1;
-    probinc = (on(player, ISHALU) ? 3 : 0);
-    probinc += (on(player, ISBLIND) ? 2 : 0);
+    probinc = (on(players[currplayer].player, ISHALU) ? 3 : 0);
+    probinc += (on(players[currplayer].player, ISBLIND) ? 2 : 0);
     found = FALSE;
     for (y = hero.y - 1; y <= ey; y++) 
 	for (x = hero.x - 1; x <= ex; x++)
@@ -502,8 +502,8 @@ search()
 foundone:
 			found = TRUE;
 			*fp |= F_REAL;
-			count = FALSE;
-			running = FALSE;
+			players[currplayer].count = FALSE;
+			players[currplayer].running = FALSE;
 			break;
 		    case FLOOR:
 			if (rnd(2 + probinc) != 0)
@@ -511,7 +511,7 @@ foundone:
 			chat(y, x) = TRAP;
 			if (!terse)
 			    addmsg("you found ");
-			if (on(player, ISHALU))
+			if (on(players[currplayer].player, ISHALU))
 			    msg(tr_name[rnd(NTRAPS)]);
 			else {
 			    msg(tr_name[*fp & F_TMASK]);
@@ -663,14 +663,14 @@ void
 d_level()
 {
     if (levit_check())
-	return;
+		return;
     if (chat(hero.y, hero.x) != STAIRS)
-	msg("I see no way down");
+		msg("I see no way down");
     else
     {
-	level++;
-	seenstairs = FALSE;
-	new_level();
+		level++;
+		players[currplayer].seenstairs = FALSE;
+		new_level();
     }
 }
 
@@ -706,7 +706,7 @@ u_level()
 bool
 levit_check()
 {
-    if (!on(player, ISLEVIT))
+    if (!on(players[currplayer].player, ISLEVIT))
 	return FALSE;
     msg("You can't.  You're floating off the ground!");
     return TRUE;

@@ -1885,9 +1885,9 @@ rs_save_file(FILE *savef)
         return(WRITESTAT);
 
     rs_write_boolean(savef, after);                 /* 1  */    /* extern.c */
-    rs_write_boolean(savef, again);                 /* 2  */
+    rs_write_boolean(savef, players[currplayer].again);                 /* 2  */
     rs_write_int(savef, noscore);	                /* 3  */
-    rs_write_boolean(savef, seenstairs);            /* 4  */
+    rs_write_boolean(savef, players[currplayer].seenstairs);            /* 4  */
     rs_write_boolean(savef, amulet);                /* 5  */
     rs_write_boolean(savef, door_stop);             /* 6  */
     rs_write_boolean(savef, fight_flush);           /* 7  */
@@ -1897,19 +1897,19 @@ rs_save_file(FILE *savef)
     rs_write_boolean(savef, in_shell);              /* 11 */
     rs_write_boolean(savef, inv_describe);          /* 12 */
     rs_write_boolean(savef, jump);                  /* 13 */
-    rs_write_boolean(savef, kamikaze);              /* 14 */
+    rs_write_boolean(savef, players[currplayer].kamikaze);              /* 14 */
     rs_write_boolean(savef, lower_msg);             /* 15 */
-    rs_write_boolean(savef, move_on);               /* 16 */
+    rs_write_boolean(savef, players[currplayer].move_on);               /* 16 */
     rs_write_boolean(savef, msg_esc);               /* 17 */
     rs_write_boolean(savef, passgo);                /* 18 */
     rs_write_boolean(savef, playing);               /* 19 */
     rs_write_boolean(savef, q_comm);                /* 20 */
-    rs_write_boolean(savef, running);               /* 21 */
+    rs_write_boolean(savef, players[currplayer].running);               /* 21 */
     rs_write_boolean(savef, save_msg);              /* 22 */
     rs_write_boolean(savef, see_floor);             /* 23 */
     rs_write_boolean(savef, stat_msg);              /* 24 */
     rs_write_boolean(savef, terse);                 /* 25 */
-    rs_write_boolean(savef, to_death);              /* 26 */
+    rs_write_boolean(savef, players[currplayer].to_death);              /* 26 */
     rs_write_boolean(savef, tombstone);             /* 27 */
 #ifdef MASTER
     rs_write_int(savef, wizard);                    /* 28 */
@@ -1924,7 +1924,7 @@ rs_save_file(FILE *savef)
     rs_write_chars(savef,prbuf,2*MAXSTR);
     rs_write_rings(savef);
     rs_write_string(savef,release);
-    rs_write_char(savef, runch);
+    rs_write_char(savef, players[currplayer].runch);
     rs_write_scrolls(savef);
     rs_write_char(savef, take);
     rs_write_chars(savef, whoami, MAXSTR);
@@ -1940,22 +1940,22 @@ rs_save_file(FILE *savef)
     rs_write_strings(savef,tr_name,8);
     rs_write_int(savef,n_objs);
     rs_write_int(savef, ntraps);
-    rs_write_int(savef, hungry_state);
-    rs_write_int(savef, inpack);
+    rs_write_int(savef, players[currplayer].hungry_state);
+    rs_write_int(savef, players[currplayer].inpack);
     rs_write_int(savef, inv_type);
     rs_write_int(savef, level);
     rs_write_int(savef, max_level);
     rs_write_int(savef, mpos);
     rs_write_int(savef, no_food);
     rs_write_ints(savef,a_class,MAXARMORS);
-    rs_write_int(savef, count);
-    rs_write_int(savef, food_left);
+    rs_write_int(savef, players[currplayer].count);
+    rs_write_int(savef, players[currplayer].food_left);
     rs_write_int(savef, lastscore);
-    rs_write_int(savef, no_command);
-    rs_write_int(savef, no_move);
+    rs_write_int(savef, players[currplayer].no_command);
+    rs_write_int(savef, players[currplayer].no_move);
     rs_write_int(savef, purse);
-    rs_write_int(savef, quiet);
-    rs_write_int(savef, vf_hit);
+    rs_write_int(savef, players[currplayer].quiet);
+    rs_write_int(savef, players[currplayer].vf_hit);
     rs_write_int(savef, dnum);
     rs_write_int(savef, seed);
     rs_write_ints(savef, e_levels, 21);
@@ -1963,13 +1963,13 @@ rs_save_file(FILE *savef)
     rs_write_coord(savef, oldpos);
     rs_write_coord(savef, stairs);
 
-    rs_write_thing(savef, &player);                     
-    rs_write_object_reference(savef, player.t_pack, cur_armor);
-    rs_write_object_reference(savef, player.t_pack, cur_ring[0]);
-    rs_write_object_reference(savef, player.t_pack, cur_ring[1]); 
-    rs_write_object_reference(savef, player.t_pack, cur_weapon); 
-    rs_write_object_reference(savef, player.t_pack, l_last_pick); 
-    rs_write_object_reference(savef, player.t_pack, last_pick); 
+    rs_write_thing(savef, &players[currplayer].player);                     
+    rs_write_object_reference(savef, players[currplayer].player.t_pack, players[currplayer].cur_armor);
+    rs_write_object_reference(savef, players[currplayer].player.t_pack, players[currplayer].cur_ring[0]);
+    rs_write_object_reference(savef, players[currplayer].player.t_pack, players[currplayer].cur_ring[1]); 
+    rs_write_object_reference(savef, players[currplayer].player.t_pack, players[currplayer].cur_weapon); 
+    rs_write_object_reference(savef, players[currplayer].player.t_pack, players[currplayer].l_last_pick); 
+    rs_write_object_reference(savef, players[currplayer].player.t_pack, players[currplayer].last_pick); 
     
     rs_write_object_list(savef, lvl_obj);               
     rs_write_thing_list(savef, mlist);                
@@ -2015,9 +2015,9 @@ rs_restore_file(FILE *inf)
         return(READSTAT);
 
     rs_read_boolean(inf, &after);               /* 1  */    /* extern.c */
-    rs_read_boolean(inf, &again);               /* 2  */
+    rs_read_boolean(inf, &players[currplayer].again);               /* 2  */
     rs_read_int(inf, &noscore);                 /* 3  */
-    rs_read_boolean(inf, &seenstairs);          /* 4  */
+    rs_read_boolean(inf, &players[currplayer].seenstairs);          /* 4  */
     rs_read_boolean(inf, &amulet);              /* 5  */
     rs_read_boolean(inf, &door_stop);           /* 6  */
     rs_read_boolean(inf, &fight_flush);         /* 7  */
@@ -2027,19 +2027,19 @@ rs_restore_file(FILE *inf)
     rs_read_boolean(inf, &in_shell);            /* 11 */
     rs_read_boolean(inf, &inv_describe);        /* 12 */
     rs_read_boolean(inf, &jump);                /* 13 */
-    rs_read_boolean(inf, &kamikaze);            /* 14 */
+    rs_read_boolean(inf, &players[currplayer].kamikaze);            /* 14 */
     rs_read_boolean(inf, &lower_msg);           /* 15 */
-    rs_read_boolean(inf, &move_on);             /* 16 */
+    rs_read_boolean(inf, &players[currplayer].move_on);             /* 16 */
     rs_read_boolean(inf, &msg_esc);             /* 17 */
     rs_read_boolean(inf, &passgo);              /* 18 */
     rs_read_boolean(inf, &playing);             /* 19 */
     rs_read_boolean(inf, &q_comm);              /* 20 */
-    rs_read_boolean(inf, &running);             /* 21 */
+    rs_read_boolean(inf, &players[currplayer].running);             /* 21 */
     rs_read_boolean(inf, &save_msg);            /* 22 */
     rs_read_boolean(inf, &see_floor);           /* 23 */
     rs_read_boolean(inf, &stat_msg);            /* 24 */
     rs_read_boolean(inf, &terse);               /* 25 */
-    rs_read_boolean(inf, &to_death);            /* 26 */
+    rs_read_boolean(inf, &players[currplayer].to_death);            /* 26 */
     rs_read_boolean(inf, &tombstone);           /* 27 */
 #ifdef MASTER
     rs_read_int(inf, &wizard);                  /* 28 */
@@ -2054,7 +2054,7 @@ rs_restore_file(FILE *inf)
     rs_read_chars(inf, prbuf, 2*MAXSTR);
     rs_read_rings(inf);
     rs_read_new_string(inf,&release);
-    rs_read_char(inf, &runch);
+    rs_read_char(inf, &players[currplayer].runch);
     rs_read_scrolls(inf);
     rs_read_char(inf, &take);
     rs_read_chars(inf, whoami, MAXSTR);
@@ -2070,22 +2070,22 @@ rs_restore_file(FILE *inf)
     rs_read_new_strings(inf,tr_name,8);
     rs_read_int(inf, &n_objs);
     rs_read_int(inf, &ntraps);
-    rs_read_int(inf, &hungry_state);
-    rs_read_int(inf, &inpack);
+    rs_read_int(inf, &players[currplayer].hungry_state);
+    rs_read_int(inf, &players[currplayer].inpack);
     rs_read_int(inf, &inv_type);
     rs_read_int(inf, &level);
     rs_read_int(inf, &max_level);
     rs_read_int(inf, &mpos);
     rs_read_int(inf, &no_food);
     rs_read_ints(inf,a_class,MAXARMORS);
-    rs_read_int(inf, &count);
-    rs_read_int(inf, &food_left);
+    rs_read_int(inf, &players[currplayer].count);
+    rs_read_int(inf, &players[currplayer].food_left);
     rs_read_int(inf, &lastscore);
-    rs_read_int(inf, &no_command);
-    rs_read_int(inf, &no_move);
+    rs_read_int(inf, &players[currplayer].no_command);
+    rs_read_int(inf, &players[currplayer].no_move);
     rs_read_int(inf, &purse);
-    rs_read_int(inf, &quiet);
-    rs_read_int(inf, &vf_hit);
+    rs_read_int(inf, &players[currplayer].quiet);
+    rs_read_int(inf, &players[currplayer].vf_hit);
     rs_read_int(inf, &dnum);
     rs_read_int(inf, &seed);
     rs_read_ints(inf,e_levels,21);
@@ -2093,17 +2093,17 @@ rs_restore_file(FILE *inf)
     rs_read_coord(inf, &oldpos);
     rs_read_coord(inf, &stairs);
 
-    rs_read_thing(inf, &player); 
-    rs_read_object_reference(inf, player.t_pack, &cur_armor);
-    rs_read_object_reference(inf, player.t_pack, &cur_ring[0]);
-    rs_read_object_reference(inf, player.t_pack, &cur_ring[1]);
-    rs_read_object_reference(inf, player.t_pack, &cur_weapon);
-    rs_read_object_reference(inf, player.t_pack, &l_last_pick);
-    rs_read_object_reference(inf, player.t_pack, &last_pick);
+    rs_read_thing(inf, &players[currplayer].player); 
+    rs_read_object_reference(inf, players[currplayer].player.t_pack, &players[currplayer].cur_armor);
+    rs_read_object_reference(inf, players[currplayer].player.t_pack, &players[currplayer].cur_ring[0]);
+    rs_read_object_reference(inf, players[currplayer].player.t_pack, &players[currplayer].cur_ring[1]);
+    rs_read_object_reference(inf, players[currplayer].player.t_pack, &players[currplayer].cur_weapon);
+    rs_read_object_reference(inf, players[currplayer].player.t_pack, &players[currplayer].l_last_pick);
+    rs_read_object_reference(inf, players[currplayer].player.t_pack, &players[currplayer].last_pick);
 
     rs_read_object_list(inf, &lvl_obj);                 
     rs_read_thing_list(inf, &mlist);                  
-    rs_fix_thing(&player);
+    rs_fix_thing(&players[currplayer].player);
     rs_fix_thing_list(mlist);
 
     rs_read_places(inf,places,MAXLINES*MAXCOLS);

@@ -24,24 +24,23 @@ doctor()
 
     lv = pstats.s_lvl;
     ohp = pstats.s_hpt;
-    quiet++;
+    players[currplayer].quiet++;
     if (lv < 8)
     {
-	if (quiet + (lv << 1) > 20)
-	    pstats.s_hpt++;
+		if (players[currplayer].quiet + (lv << 1) > 20)
+			pstats.s_hpt++;
     }
-    else
-	if (quiet >= 3)
+    else if (players[currplayer].quiet >= 3)
 	    pstats.s_hpt += rnd(lv - 7) + 1;
     if (ISRING(LEFT, R_REGEN))
-	pstats.s_hpt++;
+		pstats.s_hpt++;
     if (ISRING(RIGHT, R_REGEN))
-	pstats.s_hpt++;
+		pstats.s_hpt++;
     if (ohp != pstats.s_hpt)
     {
-	if (pstats.s_hpt > max_hp)
-	    pstats.s_hpt = max_hp;
-	quiet = 0;
+		if (pstats.s_hpt > max_hp)
+			pstats.s_hpt = max_hp;
+		players[currplayer].quiet = 0;
     }
 }
 
@@ -83,7 +82,7 @@ rollwand()
 void
 unconfuse()
 {
-    player.t_flags &= ~ISHUH;
+    players[currplayer].player.t_flags &= ~ISHUH;
     msg("you feel less %s now", choose_str("trippy", "confused"));
 }
 
@@ -99,7 +98,7 @@ unsee()
     for (th = mlist; th != NULL; th = next(th))
 	if (on(*th, ISINVIS) && see_monst(th))
 	    mvaddch(th->t_pos.y, th->t_pos.x, th->t_oldch);
-    player.t_flags &= ~CANSEE;
+    players[currplayer].player.t_flags &= ~CANSEE;
 }
 
 /*
@@ -109,10 +108,10 @@ unsee()
 void
 sight()
 {
-    if (on(player, ISBLIND))
+    if (on(players[currplayer].player, ISBLIND))
     {
 	extinguish(sight);
-	player.t_flags &= ~ISBLIND;
+	players[currplayer].player.t_flags &= ~ISBLIND;
 	if (!(proom->r_flags & ISGONE))
 	    enter_room(&hero);
 	msg(choose_str("far out!  Everything is all cosmic again",
@@ -127,7 +126,7 @@ sight()
 void
 nohaste()
 {
-    player.t_flags &= ~ISHASTE;
+    players[currplayer].player.t_flags &= ~ISHASTE;
     msg("you feel yourself slowing down");
 }
 
@@ -139,50 +138,50 @@ void
 stomach()
 {
     register int oldfood;
-    int orig_hungry = hungry_state;
+    int orig_hungry = players[currplayer].hungry_state;
 
-    if (food_left <= 0)
+    if (players[currplayer].food_left <= 0)
     {
-	if (food_left-- < -STARVETIME)
-	    death('s');
-	/*
-	 * the hero is fainting
-	 */
-	if (no_command || rnd(5) != 0)
-	    return;
-	no_command += rnd(8) + 4;
-	hungry_state = 3;
-	if (!terse)
-	    addmsg(choose_str("the munchies overpower your motor capabilities.  ",
-			      "you feel too weak from lack of food.  "));
-	msg(choose_str("You freak out", "You faint"));
+		if (players[currplayer].food_left-- < -STARVETIME)
+			death('s');
+		/*
+		 * the hero is fainting
+		 */
+		if (players[currplayer].no_command || rnd(5) != 0)
+			return;
+		players[currplayer].no_command += rnd(8) + 4;
+		players[currplayer].hungry_state = 3;
+		if (!terse)
+			addmsg(choose_str("the munchies overpower your motor capabilities.  ",
+					  "you feel too weak from lack of food.  "));
+		msg(choose_str("You freak out", "You faint"));
     }
     else
     {
-	oldfood = food_left;
-	food_left -= ring_eat(LEFT) + ring_eat(RIGHT) + 1 - amulet;
+		oldfood = players[currplayer].food_left;
+		players[currplayer].food_left -= ring_eat(LEFT) + ring_eat(RIGHT) + 1 - amulet;
 
-	if (food_left < MORETIME && oldfood >= MORETIME)
-	{
-	    hungry_state = 2;
-	    msg(choose_str("the munchies are interfering with your motor capabilites",
-			   "you are starting to feel weak"));
-	}
-	else if (food_left < 2 * MORETIME && oldfood >= 2 * MORETIME)
-	{
-	    hungry_state = 1;
-	    if (terse)
-		msg(choose_str("getting the munchies", "getting hungry"));
-	    else
-		msg(choose_str("you are getting the munchies",
-			       "you are starting to get hungry"));
-	}
+		if (players[currplayer].food_left < MORETIME && oldfood >= MORETIME)
+		{
+			players[currplayer].hungry_state = 2;
+			msg(choose_str("the munchies are interfering with your motor capabilites",
+				   "you are starting to feel weak"));
+		}
+		else if (players[currplayer].food_left < 2 * MORETIME && oldfood >= 2 * MORETIME)
+		{
+			players[currplayer].hungry_state = 1;
+			if (terse)
+				msg(choose_str("getting the munchies", "getting hungry"));
+			else
+				msg(choose_str("you are getting the munchies",
+					   "you are starting to get hungry"));
+		}
     }
-    if (hungry_state != orig_hungry) { 
-        player.t_flags &= ~ISRUN; 
-        running = FALSE; 
-        to_death = FALSE; 
-        count = 0; 
+    if (players[currplayer].hungry_state != orig_hungry) { 
+        players[currplayer].player.t_flags &= ~ISRUN; 
+        players[currplayer].running = FALSE; 
+        players[currplayer].to_death = FALSE; 
+        players[currplayer].count = 0; 
     } 
 }
 
@@ -196,13 +195,13 @@ come_down()
     register THING *tp;
     register bool seemonst;
 
-    if (!on(player, ISHALU))
+    if (!on(players[currplayer].player, ISHALU))
 	return;
 
     kill_daemon(visuals);
-    player.t_flags &= ~ISHALU;
+    players[currplayer].player.t_flags &= ~ISHALU;
 
-    if (on(player, ISBLIND))
+    if (on(players[currplayer].player, ISBLIND))
 	return;
 
     /*
@@ -215,12 +214,12 @@ come_down()
     /*
      * undo the monsters
      */
-    seemonst = on(player, SEEMONST);
+    seemonst = on(players[currplayer].player, SEEMONST);
     for (tp = mlist; tp != NULL; tp = next(tp))
     {
 	move(tp->t_pos.y, tp->t_pos.x);
 	if (cansee(tp->t_pos.y, tp->t_pos.x))
-	    if (!on(*tp, ISINVIS) || on(player, CANSEE))
+	    if (!on(*tp, ISINVIS) || on(players[currplayer].player, CANSEE))
 		addch(tp->t_disguise);
 	    else
 		addch(chat(tp->t_pos.y, tp->t_pos.x));
@@ -244,7 +243,7 @@ visuals()
     register THING *tp;
     register bool seemonst;
 
-    if (!after || (running && jump))
+    if (!after || (players[currplayer].running && jump))
 	return;
     /*
      * change the things
@@ -256,13 +255,13 @@ visuals()
     /*
      * change the stairs
      */
-    if (!seenstairs && cansee(stairs.y, stairs.x))
-	mvaddch(stairs.y, stairs.x, rnd_thing());
+    if (!players[currplayer].seenstairs && cansee(stairs.y, stairs.x))
+		mvaddch(stairs.y, stairs.x, rnd_thing());
 
     /*
      * change the monsters
      */
-    seemonst = on(player, SEEMONST);
+    seemonst = on(players[currplayer].player, SEEMONST);
     for (tp = mlist; tp != NULL; tp = next(tp))
     {
 	move(tp->t_pos.y, tp->t_pos.x);
@@ -289,7 +288,7 @@ visuals()
 void
 land()
 {
-    player.t_flags &= ~ISLEVIT;
+    players[currplayer].player.t_flags &= ~ISLEVIT;
     msg(choose_str("bummer!  You've hit the ground",
 		   "you float gently to the ground"));
 }

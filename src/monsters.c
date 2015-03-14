@@ -127,10 +127,10 @@ wanderer()
 	find_floor((struct room *) NULL, &cp, FALSE, TRUE);
     } while (roomin(&cp) == proom);
     new_monster(tp, randmonster(TRUE), &cp);
-    if (on(player, SEEMONST))
+    if (on(players[currplayer].player, SEEMONST))
     {
 	standout();
-	if (!on(player, ISHALU))
+	if (!on(players[currplayer].player, ISHALU))
 	    addch(tp->t_type);
 	else
 	    addch(rnd(26) + 'A');
@@ -167,12 +167,12 @@ wake_monster(int y, int x)
      * Every time he sees mean monster, it might start chasing him
      */
     if (!on(*tp, ISRUN) && rnd(3) != 0 && on(*tp, ISMEAN) && !on(*tp, ISHELD)
-	&& !ISWEARING(R_STEALTH) && !on(player, ISLEVIT))
+	&& !ISWEARING(R_STEALTH) && !on(players[currplayer].player, ISLEVIT))
     {
 	tp->t_dest = &hero;
 	tp->t_flags |= ISRUN;
     }
-    if (ch == 'M' && !on(player, ISBLIND) && !on(player, ISHALU)
+    if (ch == 'M' && !on(players[currplayer].player, ISBLIND) && !on(players[currplayer].player, ISHALU)
 	&& !on(*tp, ISFOUND) && !on(*tp, ISCANC) && on(*tp, ISRUN))
     {
         rp = proom;
@@ -182,11 +182,11 @@ wake_monster(int y, int x)
 	    tp->t_flags |= ISFOUND;
 	    if (!save(VS_MAGIC))
 	    {
-		if (on(player, ISHUH))
+		if (on(players[currplayer].player, ISHUH))
 		    lengthen(unconfuse, spread(HUHDURATION));
 		else
 		    fuse(unconfuse, 0, spread(HUHDURATION), AFTER);
-		player.t_flags |= ISHUH;
+		players[currplayer].player.t_flags |= ISHUH;
 		mname = set_mname(tp);
 		addmsg("%s", mname);
 		if (strcmp(mname, "it") != 0)
@@ -243,10 +243,10 @@ save(int which)
 {
     if (which == VS_MAGIC)
     {
-	if (ISRING(LEFT, R_PROTECT))
-	    which -= cur_ring[LEFT]->o_arm;
-	if (ISRING(RIGHT, R_PROTECT))
-	    which -= cur_ring[RIGHT]->o_arm;
+		if (ISRING(LEFT, R_PROTECT))
+			which -= players[currplayer].cur_ring[LEFT]->o_arm;
+		if (ISRING(RIGHT, R_PROTECT))
+			which -= players[currplayer].cur_ring[RIGHT]->o_arm;
     }
-    return save_throw(which, &player);
+    return save_throw(which, &players[currplayer].player);
 }

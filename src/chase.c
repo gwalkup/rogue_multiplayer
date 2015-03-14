@@ -34,25 +34,25 @@ runners()
     {
         /* remember this in case the monster's "next" is changed */
         next = next(tp);
-	if (!on(*tp, ISHELD) && on(*tp, ISRUN))
-	{
-	    orig_pos = tp->t_pos;
-	    wastarget = on(*tp, ISTARGET);
-	    if (move_monst(tp) == -1)
-                continue;
-	    if (on(*tp, ISFLY) && dist_cp(&hero, &tp->t_pos) >= 3)
-		move_monst(tp);
-	    if (wastarget && !ce(orig_pos, tp->t_pos))
-	    {
-		tp->t_flags &= ~ISTARGET;
-		to_death = FALSE;
-	    }
-	}
+		if (!on(*tp, ISHELD) && on(*tp, ISRUN))
+		{
+			orig_pos = tp->t_pos;
+			wastarget = on(*tp, ISTARGET);
+			if (move_monst(tp) == -1)
+					continue;
+			if (on(*tp, ISFLY) && dist_cp(&hero, &tp->t_pos) >= 3)
+			move_monst(tp);
+			if (wastarget && !ce(orig_pos, tp->t_pos))
+			{
+			tp->t_flags &= ~ISTARGET;
+			players[currplayer].to_death = FALSE;
+			}
+		}
     }
     if (has_hit)
     {
-	endmsg();
-	has_hit = FALSE;
+		endmsg();
+		has_hit = FALSE;
     }
 }
 
@@ -99,7 +99,7 @@ relocate(THING *th, coord *new_loc)
     move(new_loc->y, new_loc->x);
     if (see_monst(th))
 	addch(th->t_disguise);
-    else if (on(player, SEEMONST))
+    else if (on(players[currplayer].player, SEEMONST))
     {
 	standout();
 	addch(th->t_type);
@@ -141,50 +141,50 @@ do_chase(THING *th)
 over:
     if (rer != ree)
     {
-	for (cp = rer->r_exit; cp < &rer->r_exit[rer->r_nexits]; cp++)
-	{
-	    curdist = dist_cp(th->t_dest, cp);
-	    if (curdist < mindist)
-	    {
-		this = *cp;
-		mindist = curdist;
-	    }
-	}
-	if (door)
-	{
-	    rer = &passages[flat(th->t_pos.y, th->t_pos.x) & F_PNUM];
-	    door = FALSE;
-	    goto over;
-	}
+		for (cp = rer->r_exit; cp < &rer->r_exit[rer->r_nexits]; cp++)
+		{
+			curdist = dist_cp(th->t_dest, cp);
+			if (curdist < mindist)
+			{
+				this = *cp;
+				mindist = curdist;
+			}
+		}
+		if (door)
+		{
+			rer = &passages[flat(th->t_pos.y, th->t_pos.x) & F_PNUM];
+			door = FALSE;
+			goto over;
+		}
     }
     else
     {
-	this = *th->t_dest;
-	/*
-	 * For dragons check and see if (a) the hero is on a straight
-	 * line from it, and (b) that it is within shooting distance,
-	 * but outside of striking range.
-	 */
-	if (th->t_type == 'D' && (th->t_pos.y == hero.y || th->t_pos.x == hero.x
-	    || abs(th->t_pos.y - hero.y) == abs(th->t_pos.x - hero.x))
-	    && dist_cp(&th->t_pos, &hero) <= BOLT_LENGTH * BOLT_LENGTH
-	    && !on(*th, ISCANC) && rnd(DRAGONSHOT) == 0)
-	{
-	    delta.y = sign(hero.y - th->t_pos.y);
-	    delta.x = sign(hero.x - th->t_pos.x);
-	    if (has_hit)
-		endmsg();
-	    fire_bolt(&th->t_pos, &delta, "flame");
-	    running = FALSE;
-	    count = 0;
-	    quiet = 0;
-	    if (to_death && !on(*th, ISTARGET))
-	    {
-		to_death = FALSE;
-		kamikaze = FALSE;
-	    }
-	    return(0);
-	}
+		this = *th->t_dest;
+		/*
+		 * For dragons check and see if (a) the hero is on a straight
+		 * line from it, and (b) that it is within shooting distance,
+		 * but outside of striking range.
+		 */
+		if (th->t_type == 'D' && (th->t_pos.y == hero.y || th->t_pos.x == hero.x
+			|| abs(th->t_pos.y - hero.y) == abs(th->t_pos.x - hero.x))
+			&& dist_cp(&th->t_pos, &hero) <= BOLT_LENGTH * BOLT_LENGTH
+			&& !on(*th, ISCANC) && rnd(DRAGONSHOT) == 0)
+		{
+			delta.y = sign(hero.y - th->t_pos.y);
+			delta.x = sign(hero.x - th->t_pos.x);
+			if (has_hit)
+			endmsg();
+			fire_bolt(&th->t_pos, &delta, "flame");
+			players[currplayer].running = FALSE;
+			players[currplayer].count = 0;
+			players[currplayer].quiet = 0;
+			if (players[currplayer].to_death && !on(*th, ISTARGET))
+			{
+				players[currplayer].to_death = FALSE;
+				players[currplayer].kamikaze = FALSE;
+			}
+			return(0);
+		}
     }
     /*
      * This now contains what we want to run to this time
@@ -241,7 +241,7 @@ set_oldch(THING *tp, coord *cp)
 
     sch = tp->t_oldch;
     tp->t_oldch = CCHAR( mvinch(cp->y,cp->x) );
-    if (!on(player, ISBLIND))
+    if (!on(players[currplayer].player, ISBLIND))
     {
 	    if ((sch == FLOOR || tp->t_oldch == FLOOR) &&
 		(tp->t_room->r_flags & ISDARK))
@@ -260,9 +260,9 @@ see_monst(THING *mp)
 {
     int y, x;
 
-    if (on(player, ISBLIND))
+    if (on(players[currplayer].player, ISBLIND))
 	return FALSE;
-    if (on(*mp, ISINVIS) && !on(player, CANSEE))
+    if (on(*mp, ISINVIS) && !on(players[currplayer].player, CANSEE))
 	return FALSE;
     y = mp->t_pos.y;
     x = mp->t_pos.x;
@@ -470,7 +470,7 @@ cansee(int y, int x)
     register struct room *rer;
     static coord tp;
 
-    if (on(player, ISBLIND))
+    if (on(players[currplayer].player, ISBLIND))
 	return FALSE;
     if (dist(y, x, hero.y, hero.x) < LAMPDIST)
     {

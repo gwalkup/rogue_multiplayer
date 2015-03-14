@@ -54,10 +54,10 @@ look(bool wakeup)
     ex = hero.x + 1;
     sx = hero.x - 1;
     sy = hero.y - 1;
-    if (door_stop && !firstmove && running)
+    if (door_stop && !firstmove && players[currplayer].running)
     {
-	sumhero = hero.y + hero.x;
-	diffhero = hero.y - hero.x;
+		sumhero = hero.y + hero.x;
+		diffhero = hero.y - hero.x;
     }
     pp = INDEX(hero.y, hero.x);
     pch = pp->p_ch;
@@ -68,7 +68,7 @@ look(bool wakeup)
 	{
 	    if (x < 0 || x >= NUMCOLS)
 		continue;
-	    if (!on(player, ISBLIND))
+	    if (!on(players[currplayer].player, ISBLIND))
 	    {
 		if (y == hero.y && x == hero.x)
 		    continue;
@@ -93,10 +93,10 @@ look(bool wakeup)
 	    if ((tp = pp->p_monst) == NULL)
 		ch = trip_ch(y, x, ch);
 	    else
-		if (on(player, SEEMONST) && on(*tp, ISINVIS))
+		if (on(players[currplayer].player, SEEMONST) && on(*tp, ISINVIS))
 		{
 		    if (door_stop && !firstmove)
-			running = FALSE;
+			players[currplayer].running = FALSE;
 		    continue;
 		}
 		else
@@ -105,13 +105,13 @@ look(bool wakeup)
 			wake_monster(y, x);
 		    if (see_monst(tp))
 		    {
-			if (on(player, ISHALU))
+			if (on(players[currplayer].player, ISHALU))
 			    ch = rnd(26) + 'A';
 			else
 			    ch = tp->t_disguise;
 		    }
 		}
-	    if (on(player, ISBLIND) && (y != hero.y || x != hero.x))
+	    if (on(players[currplayer].player, ISBLIND) && (y != hero.y || x != hero.x))
 		continue;
 
 	    move(y, x);
@@ -122,9 +122,9 @@ look(bool wakeup)
 	    if (tp != NULL || ch != CCHAR( inch() ))
 		addch(ch);
 
-	    if (door_stop && !firstmove && running)
+	    if (door_stop && !firstmove && players[currplayer].running)
 	    {
-		switch (runch)
+		switch (players[currplayer].runch)
 		{
 		    case 'h':
 			if (x == ex)
@@ -155,7 +155,7 @@ look(bool wakeup)
 		{
 		    case DOOR:
 			if (x == hero.x || y == hero.y)
-			    running = FALSE;
+			    players[currplayer].running = FALSE;
 			break;
 		    case PASSAGE:
 			if (x == hero.x || y == hero.y)
@@ -167,14 +167,14 @@ look(bool wakeup)
 		    case ' ':
 			break;
 		    default:
-			running = FALSE;
+			players[currplayer].running = FALSE;
 			break;
 		}
 	    }
 	}
     if (door_stop && !firstmove && passcount > 1)
-	running = FALSE;
-    if (!running || !jump)
+	players[currplayer].running = FALSE;
+    if (!players[currplayer].running || !jump)
 	mvaddch(hero.y, hero.x, PLAYER);
 # ifdef DEBUG
     done = FALSE;
@@ -189,7 +189,7 @@ look(bool wakeup)
 int
 trip_ch(int y, int x, int ch)
 {
-    if (on(player, ISHALU) && after)
+    if (on(players[currplayer].player, ISHALU) && after)
 	switch (ch)
 	{
 	    case FLOOR:
@@ -201,7 +201,7 @@ trip_ch(int y, int x, int ch)
 	    case TRAP:
 		break;
 	    default:
-		if (y != stairs.y || x != stairs.x || !seenstairs)
+		if (y != stairs.y || x != stairs.x || !players[currplayer].seenstairs)
 		    ch = rnd_thing();
 		break;
 	}
@@ -219,7 +219,7 @@ erase_lamp(coord *pos, struct room *rp)
     int y, x, ey, sy, ex;
 
     if (!(see_floor && (rp->r_flags & (ISGONE|ISDARK)) == ISDARK
-	&& !on(player,ISBLIND)))
+	&& !on(players[currplayer].player,ISBLIND)))
 	    return;
 
     ey = pos->y + 1;
@@ -243,7 +243,7 @@ erase_lamp(coord *pos, struct room *rp)
 bool
 show_floor()
 {
-    if ((proom->r_flags & (ISGONE|ISDARK)) == ISDARK && !on(player, ISBLIND))
+    if ((proom->r_flags & (ISGONE|ISDARK)) == ISDARK && !on(players[currplayer].player, ISBLIND))
 	return see_floor;
     else
 	return TRUE;
@@ -284,26 +284,25 @@ eat()
     THING *obj;
 
     if ((obj = get_item("eat", FOOD)) == NULL)
-	return;
+		return;
     if (obj->o_type != FOOD)
     {
-	if (!terse)
-	    msg("ugh, you would get ill if you ate that");
-	else
-	    msg("that's Inedible!");
-	return;
+		if (!terse)
+			msg("ugh, you would get ill if you ate that");
+		else
+			msg("that's Inedible!");
+		return;
     }
-    if (food_left < 0)
-	food_left = 0;
-    if ((food_left += HUNGERTIME - 200 + rnd(400)) > STOMACHSIZE)
-	food_left = STOMACHSIZE;
-    hungry_state = 0;
-    if (obj == cur_weapon)
-	cur_weapon = NULL;
+    if (players[currplayer].food_left < 0)
+		players[currplayer].food_left = 0;
+    if ((players[currplayer].food_left += HUNGERTIME - 200 + rnd(400)) > STOMACHSIZE)
+		players[currplayer].food_left = STOMACHSIZE;
+    players[currplayer].hungry_state = 0;
+    if (obj == players[currplayer].cur_weapon)
+		players[currplayer].cur_weapon = NULL;
     if (obj->o_which == 1)
-	msg("my, that was a yummy %s", fruit);
-    else
-	if (rnd(100) > 70)
+		msg("my, that was a yummy %s", fruit);
+    else if (rnd(100) > 70)
 	{
 	    pstats.s_exp++;
 	    msg("%s, this food tastes awful", choose_str("bummer", "yuk"));
@@ -355,9 +354,9 @@ chg_str(int amt)
     add_str(&pstats.s_str, amt);
     comp = pstats.s_str;
     if (ISRING(LEFT, R_ADDSTR))
-	add_str(&comp, -cur_ring[LEFT]->o_arm);
+	add_str(&comp, -players[currplayer].cur_ring[LEFT]->o_arm);
     if (ISRING(RIGHT, R_ADDSTR))
-	add_str(&comp, -cur_ring[RIGHT]->o_arm);
+	add_str(&comp, -players[currplayer].cur_ring[RIGHT]->o_arm);
     if (comp > max_stats.s_str)
 	max_stats.s_str = comp;
 }
@@ -382,20 +381,20 @@ add_str(str_t *sp, int amt)
 bool
 add_haste(bool potion)
 {
-    if (on(player, ISHASTE))
+    if (on(players[currplayer].player, ISHASTE))
     {
-	no_command += rnd(8);
-	player.t_flags &= ~(ISRUN|ISHASTE);
-	extinguish(nohaste);
-	msg("you faint from exhaustion");
-	return FALSE;
+		players[currplayer].no_command += rnd(8);
+		players[currplayer].player.t_flags &= ~(ISRUN|ISHASTE);
+		extinguish(nohaste);
+		msg("you faint from exhaustion");
+		return FALSE;
     }
     else
     {
-	player.t_flags |= ISHASTE;
-	if (potion)
-	    fuse(nohaste, 0, rnd(4)+4, AFTER);
-	return TRUE;
+		players[currplayer].player.t_flags |= ISHASTE;
+		if (potion)
+			fuse(nohaste, 0, rnd(4)+4, AFTER);
+		return TRUE;
     }
 }
 
@@ -443,8 +442,8 @@ is_current(THING *obj)
 {
     if (obj == NULL)
 	return FALSE;
-    if (obj == cur_armor || obj == cur_weapon || obj == cur_ring[LEFT]
-	|| obj == cur_ring[RIGHT])
+    if (obj == players[currplayer].cur_armor || obj == players[currplayer].cur_weapon || obj == players[currplayer].cur_ring[LEFT]
+	|| obj == players[currplayer].cur_ring[RIGHT])
     {
 	if (!terse)
 	    addmsg("That's already ");
@@ -466,7 +465,7 @@ get_dir()
     bool gotit;
     static coord last_delt= {0,0};
 
-    if (again && last_dir != '\0')
+    if (players[currplayer].again && last_dir != '\0')
     {
 	delta.y = last_delt.y;
 	delta.x = last_delt.x;
@@ -504,7 +503,7 @@ get_dir()
 	last_delt.y = delta.y;
 	last_delt.x = delta.x;
     }
-    if (on(player, ISHUH) && rnd(5) == 0)
+    if (on(players[currplayer].player, ISHUH) && rnd(5) == 0)
 	do
 	{
 	    delta.y = rnd(3) - 1;
@@ -593,5 +592,5 @@ rnd_thing()
 char *
 choose_str(char *ts, char *ns)
 {
-	return (on(player, ISHALU) ? ts : ns);
+	return (on(players[currplayer].player, ISHALU) ? ts : ns);
 }

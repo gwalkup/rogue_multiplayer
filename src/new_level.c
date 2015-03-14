@@ -27,7 +27,7 @@ new_level()
     char *sp;
     int i;
 
-    player.t_flags &= ~ISHELD;	/* unhold when you go down just in case */
+    players[currplayer].player.t_flags &= ~ISHELD;	/* unhold when you go down just in case */
     if (level > max_level)
 	max_level = level;
     /*
@@ -85,7 +85,7 @@ new_level()
      */
     find_floor((struct room *) NULL, &stairs, FALSE, FALSE);
     chat(stairs.y, stairs.x) = STAIRS;
-    seenstairs = FALSE;
+    players[currplayer].seenstairs = FALSE;
 
     for (tp = mlist; tp != NULL; tp = next(tp))
 	tp->t_room = roomin(&tp->t_pos);
@@ -93,9 +93,9 @@ new_level()
     find_floor((struct room *) NULL, &hero, FALSE, TRUE);
     enter_room(&hero);
     mvaddch(hero.y, hero.x, PLAYER);
-    if (on(player, SEEMONST))
+    if (on(players[currplayer].player, SEEMONST))
 	turn_see(FALSE);
-    if (on(player, ISHALU))
+    if (on(players[currplayer].player, ISHALU))
 	visuals();
 }
 

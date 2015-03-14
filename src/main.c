@@ -7,7 +7,7 @@
  *
  * @(#)main.c	4.22 (Berkeley) 02/05/99
  */
-
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -26,7 +26,7 @@ main(int argc, char **argv, char **envp)
     int lowtime;
 
     md_init();
-
+	add_player();
 #ifdef MASTER
     /*
      * Check to see if he is a wizard
@@ -35,7 +35,7 @@ main(int argc, char **argv, char **envp)
 	if (strcmp(PASSWD, md_crypt(md_getpass("wizard's password: "), "mT")) == 0)
 	{
 	    wizard = TRUE;
-	    player.t_flags |= SEEMONST;
+	    players[currplayer].player.t_flags |= SEEMONST;
 	    argv++;
 	    argc--;
 	}
@@ -56,6 +56,7 @@ main(int argc, char **argv, char **envp)
     if (env == NULL || whoami[0] == '\0')
         strucpy(whoami, md_getusername(), (int) strlen(md_getusername()));
     lowtime = (int) time(NULL);
+
 #ifdef MASTER
     if (wizard && getenv("SEED") != NULL)
 	dnum = atoi(getenv("SEED"));
@@ -80,24 +81,24 @@ main(int argc, char **argv, char **envp)
 
     if (argc == 2)
     {
-	if (strcmp(argv[1], "-s") == 0)
-	{
-	    noscore = TRUE;
-	    score(0, -1, 0);
-	    exit(0);
-	}
-	else if (strcmp(argv[1], "-d") == 0)
-	{
-	    dnum = rnd(100);	/* throw away some rnd()s to break patterns */
-	    while (--dnum)
-		rnd(100);
-	    purse = rnd(100) + 1;
-	    level = rnd(100) + 1;
-	    initscr();
-	    getltchars();
-	    death(death_monst());
-	    exit(0);
-	}
+		if (strcmp(argv[1], "-s") == 0)
+		{
+			noscore = TRUE;
+			score(0, -1, 0);
+			exit(0);
+		}
+		else if (strcmp(argv[1], "-d") == 0)
+		{
+			dnum = rnd(100);	/* throw away some rnd()s to break patterns */
+			while (--dnum)
+			rnd(100);
+			purse = rnd(100) + 1;
+			level = rnd(100) + 1;
+			initscr();
+			getltchars();
+			death(death_monst());
+			exit(0);
+		}
     }
 
     init_check();			/* check for legal startup */
@@ -259,25 +260,25 @@ playit()
 
     if (baudrate() <= 1200)
     {
-	terse = TRUE;
-	jump = TRUE;
-	see_floor = FALSE;
+		terse = TRUE;
+		jump = TRUE;
+		see_floor = FALSE;
     }
 
     if (md_hasclreol())
-	inv_type = INV_CLEAR;
+		inv_type = INV_CLEAR;
 
     /*
      * parse environment declaration of options
      */
     if ((opts = getenv("ROGUEOPTS")) != NULL)
-	parse_opts(opts);
+		parse_opts(opts);
 
 
     oldpos = hero;
     oldrp = roomin(&hero);
     while (playing)
-	command();			/* Command execution */
+		command();			/* Command execution */
     endit(0);
 }
 
@@ -302,24 +303,24 @@ quit(int sig)
     msg("really quit?");
     if (readchar() == 'y')
     {
-	signal(SIGINT, leave);
-	clear();
-	mvprintw(LINES - 2, 0, "You quit with %d gold pieces", purse);
-	move(LINES - 1, 0);
-	refresh();
-	score(purse, 1, 0);
-	my_exit(0);
+		signal(SIGINT, leave);
+		clear();
+		mvprintw(LINES - 2, 0, "You quit with %d gold pieces", purse);
+		move(LINES - 1, 0);
+		refresh();
+		score(purse, 1, 0);
+		my_exit(0);
     }
     else
     {
-	move(0, 0);
-	clrtoeol();
-	status();
-	move(oy, ox);
-	refresh();
-	mpos = 0;
-	count = 0;
-	to_death = FALSE;
+		move(0, 0);
+		clrtoeol();
+		status();
+		move(oy, ox);
+		refresh();
+		mpos = 0;
+		players[currplayer].count = 0;
+		players[currplayer].to_death = FALSE;
     }
 }
 
@@ -394,3 +395,61 @@ my_exit(int st)
     exit(st);
 }
 
+struct player* add_player(){
+	struct player* newplayers = malloc(sizeof(struct player)*(numplayers+1));
+	assert(newplayers != NULL);
+	int i;
+	for(i = 0; i < numplayers; ++i){
+		newplayers[i] = players[i];
+	}
+	if(numplayers > 0)
+		free(players);
+	players = newplayers;
+	struct player *newplayer = &newplayers[numplayers];
+	newplayer -> l_last_pick = NULL;	/* Last last_pick */
+	newplayer -> last_pick = NULL;		/* Last object picked in get_item() */
+	newplayer -> quiet = 0;				/* Number of quiet turns */
+	newplayer -> no_command = 0;		/* Number of turns asleep */
+	newplayer -> no_move = 0;			/* Number of turns held in place */
+	newplayer -> vf_hit = 0;			/* Number of time flytrap has hit */
+	newplayer -> count = 0;				/* Number of times to repeat command */
+	newplayer -> to_death = FALSE;		/* Fighting is to the death! */
+	newplayer -> move_on = FALSE;		/* Next move shouldn't pick up items */
+	newplayer -> kamikaze = FALSE;		/* to_death really to DEATH */
+	newplayer -> seenstairs = FALSE;	/* Have seen the stairs (for lsd) */
+	newplayer -> again = FALSE;			/* Repeating the last command */
+	newplayer -> comm.comm = '\0';
+	newplayer -> comm.dir = '\0';
+	newplayer -> comm.inv_item = '\0';
+	++numplayers;
+	return newplayer;
+}
+
+void remove_player(int index){
+	if(index < 0 || index >= numplayers)
+		return;
+	struct player* newplayers = malloc(numplayers-1);
+	assert(newplayers != NULL);
+	int off = 0, i;
+	for(i = 0; i < numplayers; ++i){
+		if(i != index){
+			newplayers[i-off] = players[i];
+		}
+		else{
+			++off;
+		}
+	}
+	free(players);
+	players = newplayers;
+	--numplayers;
+}
+
+bool ready(){
+	int i;
+	for(i = 0; i < numplayers; ++i){
+		if(players[i].comm.comm != 'r'){
+			return FALSE;
+		}
+	}
+	return TRUE;
+}

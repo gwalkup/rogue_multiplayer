@@ -188,10 +188,10 @@ status()
      * If nothing has changed since the last status, don't
      * bother.
      */
-    temp = (cur_armor != NULL ? cur_armor->o_arm : pstats.s_arm);
+    temp = (players[currplayer].cur_armor != NULL ? players[currplayer].cur_armor->o_arm : pstats.s_arm);
     if (s_hp == pstats.s_hpt && s_exp == pstats.s_exp && s_pur == purse
 	&& s_arm == temp && s_str == pstats.s_str && s_lvl == level
-	&& s_hungry == hungry_state
+	&& s_hungry == players[currplayer].hungry_state
 	&& !stat_msg
 	)
 	    return;
@@ -215,7 +215,7 @@ status()
     s_hp = pstats.s_hpt;
     s_str = pstats.s_str;
     s_exp = pstats.s_exp; 
-    s_hungry = hungry_state;
+    s_hungry = players[currplayer].hungry_state;
 
     if (stat_msg)
     {
@@ -223,7 +223,7 @@ status()
         msg("Level: %d  Gold: %-5d  Hp: %*d(%*d)  Str: %2d(%d)  Arm: %-2d  Exp: %d/%ld  %s",
 	    level, purse, hpwidth, pstats.s_hpt, hpwidth, max_hp, pstats.s_str,
 	    max_stats.s_str, 10 - s_arm, pstats.s_lvl, pstats.s_exp,
-	    state_name[hungry_state]);
+	    state_name[players[currplayer].hungry_state]);
     }
     else
     {
@@ -232,7 +232,7 @@ status()
         printw("Level: %d  Gold: %-5d  Hp: %*d(%*d)  Str: %2d(%d)  Arm: %-2d  Exp: %d/%d  %s",
 	    level, purse, hpwidth, pstats.s_hpt, hpwidth, max_hp, pstats.s_str,
 	    max_stats.s_str, 10 - s_arm, pstats.s_lvl, pstats.s_exp,
-	    state_name[hungry_state]);
+	    state_name[players[currplayer].hungry_state]);
     }
 
     clrtoeol();

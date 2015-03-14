@@ -205,28 +205,28 @@ teleport()
     find_floor((struct room *) NULL, &c, FALSE, TRUE);
     if (roomin(&c) != proom)
     {
-	leave_room(&hero);
-	hero = c;
-	enter_room(&hero);
+		leave_room(&hero);
+		hero = c;
+		enter_room(&hero);
     }
     else
     {
-	hero = c;
-	look(TRUE);
+		hero = c;
+		look(TRUE);
     }
     mvaddch(hero.y, hero.x, PLAYER);
     /*
      * turn off ISHELD in case teleportation was done while fighting
      * a Flytrap
      */
-    if (on(player, ISHELD)) {
-	player.t_flags &= ~ISHELD;
-	vf_hit = 0;
-	strcpy(monsters['F'-'A'].m_stats.s_dmg, "000x0");
+    if (on(players[currplayer].player, ISHELD)) {
+		players[currplayer].player.t_flags &= ~ISHELD;
+		players[currplayer].vf_hit = 0;
+		strcpy(monsters['F'-'A'].m_stats.s_dmg, "000x0");
     }
-    no_move = 0;
-    count = 0;
-    running = FALSE;
+    players[currplayer].no_move = 0;
+    players[currplayer].count = 0;
+    players[currplayer].running = FALSE;
     flush_type();
 }
 

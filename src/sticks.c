@@ -116,7 +116,7 @@ do_zap()
 	    {
 		monster = tp->t_type;
 		if (monster == 'F')
-		    player.t_flags &= ~ISHELD;
+		    players[currplayer].player.t_flags &= ~ISHELD;
 		switch (obj->o_which) {
 		    case WS_INVIS:
 			tp->t_flags |= ISINVIS;
@@ -179,8 +179,8 @@ do_zap()
 	    bolt.o_hplus = 100;
 	    bolt.o_dplus = 1;
 	    bolt.o_flags = ISMISL;
-	    if (cur_weapon != NULL)
-		bolt.o_launch = cur_weapon->o_which;
+	    if (players[currplayer].cur_weapon != NULL)
+			bolt.o_launch = players[currplayer].cur_weapon->o_which;
 	    do_motion(&bolt, delta.y, delta.x);
 	    if ((tp = moat(bolt.o_pos.y, bolt.o_pos.x)) != NULL
 		&& !save_throw(VS_MAGIC, tp))

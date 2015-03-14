@@ -116,13 +116,13 @@ inv_name(THING *obj, bool drop)
     }
     if (inv_describe)
     {
-	if (obj == cur_armor)
+	if (obj == players[currplayer].cur_armor)
 	    strcat(pb, " (being worn)");
-	if (obj == cur_weapon)
+	if (obj == players[currplayer].cur_weapon)
 	    strcat(pb, " (weapon in hand)");
-	if (obj == cur_ring[LEFT])
+	if (obj == players[currplayer].cur_ring[LEFT])
 	    strcat(pb, " (on left hand)");
-	else if (obj == cur_ring[RIGHT])
+	else if (obj == players[currplayer].cur_ring[RIGHT])
 	    strcat(pb, " (on right hand)");
     }
     if (drop && isupper(prbuf[0]))
@@ -177,24 +177,24 @@ dropcheck(THING *obj)
 {
     if (obj == NULL)
 	return TRUE;
-    if (obj != cur_armor && obj != cur_weapon
-	&& obj != cur_ring[LEFT] && obj != cur_ring[RIGHT])
+    if (obj != players[currplayer].cur_armor && obj != players[currplayer].cur_weapon
+	&& obj != players[currplayer].cur_ring[LEFT] && obj != players[currplayer].cur_ring[RIGHT])
 	    return TRUE;
     if (obj->o_flags & ISCURSED)
     {
 	msg("you can't.  It appears to be cursed");
 	return FALSE;
     }
-    if (obj == cur_weapon)
-	cur_weapon = NULL;
-    else if (obj == cur_armor)
+    if (obj == players[currplayer].cur_weapon)
+	players[currplayer].cur_weapon = NULL;
+    else if (obj == players[currplayer].cur_armor)
     {
 	waste_time();
-	cur_armor = NULL;
+	players[currplayer].cur_armor = NULL;
     }
     else
     {
-	cur_ring[obj == cur_ring[LEFT] ? LEFT : RIGHT] = NULL;
+	players[currplayer].cur_ring[obj == players[currplayer].cur_ring[LEFT] ? LEFT : RIGHT] = NULL;
 	switch (obj->o_which)
 	{
 	    case R_ADDSTR:

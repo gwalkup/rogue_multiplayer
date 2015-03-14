@@ -56,11 +56,11 @@
 #define prev(ptr)	(*ptr).l_prev
 #define winat(y,x)	(moat(y,x) != NULL ? moat(y,x)->t_disguise : chat(y,x))
 #define ce(a,b)		((a).x == (b).x && (a).y == (b).y)
-#define hero		player.t_pos
-#define pstats		player.t_stats
-#define pack		player.t_pack
-#define proom		player.t_room
-#define max_hp		player.t_stats.s_maxhp
+#define hero		players[currplayer].player.t_pos
+#define pstats		players[currplayer].player.t_stats
+#define pack		players[currplayer].player.t_pack
+#define proom		players[currplayer].player.t_room
+#define max_hp		players[currplayer].player.t_stats.s_maxhp
 #define attach(a,b)	_attach(&a,b)
 #define detach(a,b)	_detach(&a,b)
 #define free_list(a)	_free_list(&a)
@@ -68,7 +68,7 @@
 #define max(a,b)	((a) > (b) ? (a) : (b))
 #define on(thing,flag)	((bool)(((thing).t_flags & (flag)) != 0))
 #define GOLDCALC	(rnd(50 + 10 * level) + 2)
-#define ISRING(h,r)	(cur_ring[h] != NULL && cur_ring[h]->o_which == r)
+#define ISRING(h,r)	(players[currplayer].cur_ring[h] != NULL && players[currplayer].cur_ring[h]->o_which == r)
 #define ISWEARING(r)	(ISRING(LEFT, r) || ISRING(RIGHT, r))
 #define ISMULT(type) 	(type == POTION || type == SCROLL || type == FOOD)
 #define INDEX(y,x)	(&places[((x) << 5) + (y)])
@@ -458,26 +458,61 @@ struct monster {
 };
 
 /*
+ * Struct containing information for a player's command
+ */
+struct command {
+	char comm;
+	char dir;
+	char inv_item;
+};
+
+/*
+ * Struct containing information for a player
+ */
+struct player {
+	THING *cur_armor;		/* What he is wearing */
+	THING *cur_ring[2];		/* Which rings are being worn */
+	THING *cur_weapon;		/* Which weapon he is wielding */
+	THING *l_last_pick;		/* Last last_pick */
+	THING *last_pick;		/* Last object picked in get_item() */
+	int hungry_state;		/* How hungry is he */
+	int inpack;				/* Number of things in pack */
+	int food_left;			/* Amount of food in hero's stomach */
+	int quiet;				/* Number of quiet turns */
+	int no_command;			/* Number of turns asleep */
+	int no_move;			/* Number of turns held in place */
+	int vf_hit;				/* Number of time flytrap has hit */
+	int count;				/* Number of times to repeat command */
+	bool to_death;			/* Fighting is to the death! */
+	bool move_on;			/* Next move shouldn't pick up items */
+	bool kamikaze;			/* to_death really to DEATH */
+	bool seenstairs;		/* Have seen the stairs (for lsd) */
+	bool again;				/* Repeating the last command */
+	bool running; 			/* True if player is running */
+	char runch;				/* Direction player is running */			
+	struct command comm;	/* Command the user is executing */
+	THING player;			/* The player's stats */
+};
+ 
+/*
  * External variables
  */
 
-extern bool	after, again, allscore, amulet, door_stop, fight_flush,
-		firstmove, has_hit, inv_describe, jump, kamikaze,
-		lower_msg, move_on, msg_esc, pack_used[],
-		passgo, playing, q_comm, running, save_msg, see_floor,
-		seenstairs, stat_msg, terse, to_death, tombstone;
+extern bool	after, allscore, amulet, door_stop, fight_flush,
+		firstmove, has_hit, inv_describe, jump,
+		lower_msg, msg_esc, pack_used[],
+		passgo, playing, q_comm, save_msg, see_floor,
+		stat_msg, terse, tombstone;
 
 extern char	dir_ch, file_name[], home[], huh[], *inv_t_name[],
 		l_last_comm, l_last_dir, last_comm, last_dir, *Numname,
 		outbuf[], *p_colors[], *r_stones[], *release, runch,
 		*s_names[], take, *tr_name[], *ws_made[], *ws_type[];
 
-extern int	a_class[], count, food_left, hungry_state, inpack,
-		inv_type, lastscore, level, max_hit, max_level, mpos,
-		n_objs, no_command, no_food, no_move, noscore, ntraps, purse,
-		quiet, vf_hit;
+extern int	a_class[], inv_type, lastscore, level, max_hit, max_level, 
+			mpos, n_objs, no_food, noscore, ntraps, purse;
 
-extern unsigned int	numscores;
+extern unsigned int	numscores, numplayers, currplayer;
 
 extern int	dnum, e_levels[], seed;
 
@@ -487,8 +522,9 @@ extern coord	delta, oldpos, stairs;
 
 extern PLACE	places[];
 
-extern THING	*cur_armor, *cur_ring[], *cur_weapon, *l_last_pick,
-		*last_pick, *lvl_obj, *mlist, player;
+extern THING	*lvl_obj, *mlist;
+
+extern struct player *players;
 
 extern struct h_list	helpstr[];
 

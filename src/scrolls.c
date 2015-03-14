@@ -46,8 +46,8 @@ read_scroll()
     /*
      * Calculate the effect it has on the poor guy.
      */
-    if (obj == cur_weapon)
-	cur_weapon = NULL;
+    if (obj == players[currplayer].cur_weapon)
+	players[currplayer].cur_weapon = NULL;
     /*
      * Get rid of the thing
      */
@@ -61,13 +61,13 @@ read_scroll()
 	    /*
 	     * Scroll of monster confusion.  Give him that power.
 	     */
-	    player.t_flags |= CANHUH;
+	    players[currplayer].player.t_flags |= CANHUH;
 	    msg("your hands begin to glow %s", pick_color("red"));
 	when S_ARMOR:
-	    if (cur_armor != NULL)
+	    if (players[currplayer].cur_armor != NULL)
 	    {
-		cur_armor->o_arm--;
-		cur_armor->o_flags &= ~ISCURSED;
+		players[currplayer].cur_armor->o_arm--;
+		players[currplayer].cur_armor->o_flags &= ~ISCURSED;
 		msg("your armor glows %s for a moment", pick_color("silver"));
 	    }
 	when S_HOLD:
@@ -105,8 +105,8 @@ read_scroll()
 	     * Scroll which makes you fall asleep
 	     */
 	    scr_info[S_SLEEP].oi_know = TRUE;
-	    no_command += rnd(SLEEPTIME) + 4;
-	    player.t_flags &= ~ISRUN;
+	    players[currplayer].no_command += rnd(SLEEPTIME) + 4;
+	    players[currplayer].player.t_flags &= ~ISRUN;
 	    msg("you fall asleep");
 	when S_CREATE:
 	    /*
@@ -127,21 +127,21 @@ read_scroll()
 		     */
 		    else if (step_ok(ch = winat(y, x)))
 		    {
-			if (ch == SCROLL
-			    && find_obj(y, x)->o_which == S_SCARE)
-				continue;
-			else if (rnd(++i) == 0)
-			{
-			    mp.y = y;
-			    mp.x = x;
-			}
+				if (ch == SCROLL
+					&& find_obj(y, x)->o_which == S_SCARE)
+					continue;
+				else if (rnd(++i) == 0)
+				{
+					mp.y = y;
+					mp.x = x;
+				}
 		    }
 	    if (i == 0)
-		msg("you hear a faint cry of anguish in the distance");
+			msg("you hear a faint cry of anguish in the distance");
 	    else
 	    {
-		obj = new_item();
-		new_monster(obj, randmonster(FALSE), &mp);
+			obj = new_item();
+			new_monster(obj, randmonster(FALSE), &mp);
 	    }
 	when S_ID_POTION:
 	case S_ID_SCROLL:
@@ -223,7 +223,7 @@ def:
 		    {
 			if ((obj = pp->p_monst) != NULL)
 			    obj->t_oldch = ch;
-			if (obj == NULL || !on(player, SEEMONST))
+			if (obj == NULL || !on(players[currplayer].player, SEEMONST))
 			    mvaddch(y, x, ch);
 		    }
 		}
@@ -259,17 +259,17 @@ def:
 		    scr_info[S_TELEP].oi_know = TRUE;
 	    }
 	when S_ENCH:
-	    if (cur_weapon == NULL || cur_weapon->o_type != WEAPON)
+	    if (players[currplayer].cur_weapon == NULL || players[currplayer].cur_weapon->o_type != WEAPON)
 		msg("you feel a strange sense of loss");
 	    else
 	    {
-		cur_weapon->o_flags &= ~ISCURSED;
+		players[currplayer].cur_weapon->o_flags &= ~ISCURSED;
 		if (rnd(2) == 0)
-		    cur_weapon->o_hplus++;
+		    players[currplayer].cur_weapon->o_hplus++;
 		else
-		    cur_weapon->o_dplus++;
+		    players[currplayer].cur_weapon->o_dplus++;
 		msg("your %s glows %s for a moment",
-		    weap_info[cur_weapon->o_which].oi_name, pick_color("blue"));
+		    weap_info[players[currplayer].cur_weapon->o_which].oi_name, pick_color("blue"));
 	    }
 	when S_SCARE:
 	    /*
@@ -278,10 +278,10 @@ def:
 	     */
 	    msg("you hear maniacal laughter in the distance");
 	when S_REMOVE:
-	    uncurse(cur_armor);
-	    uncurse(cur_weapon);
-	    uncurse(cur_ring[LEFT]);
-	    uncurse(cur_ring[RIGHT]);
+	    uncurse(players[currplayer].cur_armor);
+	    uncurse(players[currplayer].cur_weapon);
+	    uncurse(players[currplayer].cur_ring[LEFT]);
+	    uncurse(players[currplayer].cur_ring[RIGHT]);
 	    msg(choose_str("you feel in touch with the Universal Onenes",
 			   "you feel as if somebody is watching over you"));
 	when S_AGGR:
@@ -292,9 +292,9 @@ def:
 	    aggravate();
 	    msg("you hear a high pitched humming noise");
 	when S_PROTECT:
-	    if (cur_armor != NULL)
+	    if (players[currplayer].cur_armor != NULL)
 	    {
-		cur_armor->o_flags |= ISPROT;
+		players[currplayer].cur_armor->o_flags |= ISPROT;
 		msg("your armor is covered by a shimmering %s shield",
 		    pick_color("gold"));
 	    }

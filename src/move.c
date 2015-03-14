@@ -28,9 +28,9 @@ coord nh;
 void
 do_run(char ch)
 {
-    running = TRUE;
+    players[currplayer].running = TRUE;
     after = FALSE;
-    runch = ch;
+    players[currplayer].runch = ch;
 }
 
 /*
@@ -45,23 +45,23 @@ do_move(int dy, int dx)
     char ch, fl;
 
     firstmove = FALSE;
-    if (no_move)
+    if (players[currplayer].no_move)
     {
-	no_move--;
-	msg("you are still stuck in the bear trap");
-	return;
+		players[currplayer].no_move--;
+		msg("you are still stuck in the bear trap");
+		return;
     }
     /*
      * Do a confused move (maybe)
      */
-    if (on(player, ISHUH) && rnd(5) != 0)
+    if (on(players[currplayer].player, ISHUH) && rnd(5) != 0)
     {
-	nh = *rndmove(&player);
+	nh = *rndmove(&players[currplayer].player);
 	if (ce(nh, hero))
 	{
 	    after = FALSE;
-	    running = FALSE;
-	    to_death = FALSE;
+	    players[currplayer].running = FALSE;
+	    players[currplayer].to_death = FALSE;
 	    return;
 	}
     }
@@ -81,22 +81,22 @@ over:
     if (!diag_ok(&hero, &nh))
     {
 	after = FALSE;
-	running = FALSE;
+	players[currplayer].running = FALSE;
 	return;
     }
-    if (running && ce(hero, nh))
-	after = running = FALSE;
+    if (players[currplayer].running && ce(hero, nh))
+	after = players[currplayer].running = FALSE;
     fl = flat(nh.y, nh.x);
     ch = winat(nh.y, nh.x);
     if (!(fl & F_REAL) && ch == FLOOR)
     {
-	if (!on(player, ISLEVIT))
+	if (!on(players[currplayer].player, ISLEVIT))
 	{
 	    chat(nh.y, nh.x) = ch = TRAP;
 	    flat(nh.y, nh.x) |= F_REAL;
 	}
     }
-    else if (on(player, ISHELD) && ch != 'F')
+    else if (on(players[currplayer].player, ISHELD) && ch != 'F')
     {
 	msg("you are being held");
 	return;
@@ -107,12 +107,12 @@ over:
 	case '|':
 	case '-':
 hit_bound:
-	    if (passgo && running && (proom->r_flags & ISGONE)
-		&& !on(player, ISBLIND))
+	    if (passgo && players[currplayer].running && (proom->r_flags & ISGONE)
+		&& !on(players[currplayer].player, ISBLIND))
 	    {
 		bool	b1, b2;
 
-		switch (runch)
+		switch (players[currplayer].runch)
 		{
 		    case 'h':
 		    case 'l':
@@ -122,12 +122,12 @@ hit_bound:
 			    break;
 			if (b1)
 			{
-			    runch = 'k';
+			    players[currplayer].runch = 'k';
 			    dy = -1;
 			}
 			else
 			{
-			    runch = 'j';
+			    players[currplayer].runch = 'j';
 			    dy = 1;
 			}
 			dx = 0;
@@ -141,12 +141,12 @@ hit_bound:
 			    break;
 			if (b1)
 			{
-			    runch = 'h';
+			    players[currplayer].runch = 'h';
 			    dx = -1;
 			}
 			else
 			{
-			    runch = 'l';
+			    players[currplayer].runch = 'l';
 			    dx = 1;
 			}
 			dy = 0;
@@ -154,11 +154,11 @@ hit_bound:
 			goto over;
 		}
 	    }
-	    running = FALSE;
+	    players[currplayer].running = FALSE;
 	    after = FALSE;
 	    break;
 	case DOOR:
-	    running = FALSE;
+	    players[currplayer].running = FALSE;
 	    if (flat(hero.y, hero.x) & F_PASS)
 		enter_room(&nh);
 	    goto move_stuff;
@@ -181,12 +181,12 @@ hit_bound:
 		be_trapped(&hero);
 	    goto move_stuff;
 	case STAIRS:
-	    seenstairs = TRUE;
+	    players[currplayer].seenstairs = TRUE;
 	    /* FALLTHROUGH */
 	default:
-	    running = FALSE;
+	    players[currplayer].running = FALSE;
 	    if (isupper(ch) || moat(nh.y, nh.x))
-		fight(&nh, cur_weapon, FALSE);
+		fight(&nh, players[currplayer].cur_weapon, FALSE);
 	    else
 	    {
 		if (ch != STAIRS)
@@ -266,10 +266,10 @@ be_trapped(coord *tc)
     THING *arrow;
     char tr;
 
-    if (on(player, ISLEVIT))
+    if (on(players[currplayer].player, ISLEVIT))
 	return T_RUST;	/* anything that's not a door or teleport */
-    running = FALSE;
-    count = FALSE;
+    players[currplayer].running = FALSE;
+    players[currplayer].count = FALSE;
     pp = INDEX(tc->y, tc->x);
     pp->p_ch = TRAP;
     tr = pp->p_flags & F_TMASK;
@@ -281,7 +281,7 @@ be_trapped(coord *tc)
 	    new_level();
 	    msg("you fell into a trap!");
 	when T_BEAR:
-	    no_move += BEARTIME;
+	    players[currplayer].no_move += BEARTIME;
 	    msg("you are caught in a bear trap");
         when T_MYST:
             switch(rnd(11))
@@ -299,8 +299,8 @@ be_trapped(coord *tc)
                 when 10: msg("you pack turns %s!", rainbow[rnd(cNCOLORS)]);
             }
 	when T_SLEEP:
-	    no_command += SLEEPTIME;
-	    player.t_flags &= ~ISRUN;
+	    players[currplayer].no_command += SLEEPTIME;
+	    players[currplayer].player.t_flags &= ~ISRUN;
 	    msg("a strange white mist envelops you and you fall asleep");
 	when T_ARROW:
 	    if (swing(pstats.s_lvl - 1, pstats.s_arm, 1))
@@ -347,7 +347,7 @@ be_trapped(coord *tc)
 	    }
 	when T_RUST:
 	    msg("a gush of water hits you on the head");
-	    rust_armor(cur_armor);
+	    rust_armor(players[currplayer].cur_armor);
     }
     flush_type();
     return tr;
@@ -411,7 +411,7 @@ rust_armor(THING *arm)
 
     if ((arm->o_flags & ISPROT) || ISWEARING(R_SUSTARM))
     {
-	if (!to_death)
+	if (!players[currplayer].to_death)
 	    msg("the rust vanishes instantly");
     }
     else

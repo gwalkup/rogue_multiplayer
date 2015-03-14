@@ -14,9 +14,9 @@
 #include "rogue.h"
 
 bool after;				/* True if we want after daemons */
-bool again;				/* Repeating the last command */
+//bool again;				/* Repeating the last command */
 int  noscore;				/* Was a wizard sometime */
-bool seenstairs;			/* Have seen the stairs (for lsd) */
+//bool seenstairs;			/* Have seen the stairs (for lsd) */
 bool amulet = FALSE;			/* He found the amulet */
 bool door_stop = FALSE;			/* Stop running when we pass a door */
 bool fight_flush = FALSE;		/* True if toilet input */
@@ -26,19 +26,19 @@ bool has_hit = FALSE;			/* Has a "hit" message pending in msg */
 bool in_shell = FALSE;			/* True if executing a shell */
 bool inv_describe = TRUE;		/* Say which way items are being used */
 bool jump = FALSE;			/* Show running as series of jumps */
-bool kamikaze = FALSE;			/* to_death really to DEATH */
+//bool kamikaze = FALSE;			/* to_death really to DEATH */
 bool lower_msg = FALSE;			/* Messages should start w/lower case */
-bool move_on = FALSE;			/* Next move shouldn't pick up items */
+//bool move_on = FALSE;			/* Next move shouldn't pick up items */
 bool msg_esc = FALSE;			/* Check for ESC from msg's --More-- */
 bool passgo = FALSE;			/* Follow passages */
 bool playing = TRUE;			/* True until he quits */
 bool q_comm = FALSE;			/* Are we executing a 'Q' command? */
-bool running = FALSE;			/* True if player is running */
+//bool running = FALSE;			/* True if player is running */
 bool save_msg = TRUE;			/* Remember last msg */
 bool see_floor = TRUE;			/* Show the lamp illuminated floor */
 bool stat_msg = FALSE;			/* Should status() print as a msg() */
 bool terse = FALSE;			/* True if we should be short */
-bool to_death = FALSE;			/* Fighting is to the death! */
+//bool to_death = FALSE;			/* Fighting is to the death! */
 bool tombstone = TRUE;			/* Print out tombstone at end */
 #ifdef MASTER
 int wizard = FALSE;			/* True if allows wizard commands */
@@ -55,7 +55,7 @@ char huh[MAXSTR];			/* The last message printed */
 char *p_colors[MAXPOTIONS];		/* Colors of the potions */
 char prbuf[2*MAXSTR];			/* buffer for sprintfs */
 char *r_stones[MAXRINGS];		/* Stone settings of the rings */
-char runch;				/* Direction player is running */
+//char runch;				/* Direction player is running */
 char *s_names[MAXSCROLLS];		/* Names of the scrolls */
 char take;				/* Thing she is taking */
 char whoami[MAXSTR];			/* Name of player */
@@ -88,8 +88,7 @@ char *tr_name[] = {			/* Names of the traps */
 
 int n_objs;				/* # items listed in inventory() call */
 int ntraps;				/* Number of traps on this level */
-int hungry_state = 0;			/* How hungry is he */
-int inpack = 0;				/* Number of things in pack */
+//int hungry_state = 0;			/* How hungry is he */
 int inv_type = 0;			/* Type of inventory to use */
 int level = 1;				/* What level she is on */
 int max_hit;				/* Max damage done to her in to_death */
@@ -107,15 +106,17 @@ int a_class[MAXARMORS] = {		/* Armor class for each armor type */
 	3,	/* PLATE_MAIL */
 };
 
-int count = 0;				/* Number of times to repeat command */
+//int count = 0;				/* Number of times to repeat command */
 FILE *scoreboard = NULL;	/* File descriptor for score file */
-int food_left;				/* Amount of food in hero's stomach */
+//int food_left;				/* Amount of food in hero's stomach */
 int lastscore = -1;			/* Score before this turn */
-int no_command = 0;			/* Number of turns asleep */
-int no_move = 0;			/* Number of turns held in place */
+//int no_command = 0;			/* Number of turns asleep */
+//int no_move = 0;			/* Number of turns held in place */
 int purse = 0;				/* How much gold he has */
-int quiet = 0;				/* Number of quiet turns */
-int vf_hit = 0;				/* Number of time flytrap has hit */
+//int quiet = 0;				/* Number of quiet turns */
+//int vf_hit = 0;				/* Number of time flytrap has hit */
+unsigned int numplayers = 0; 		/* Number of players */
+unsigned int currplayer;
 
 int dnum;				/* Dungeon number */
 int seed;				/* Random number seed */
@@ -149,14 +150,15 @@ coord stairs;				/* Location of staircase */
 
 PLACE places[MAXLINES*MAXCOLS];		/* level map */
 
-THING *cur_armor;			/* What he is wearing */
-THING *cur_ring[2];			/* Which rings are being worn */
-THING *cur_weapon;			/* Which weapon he is weilding */
-THING *l_last_pick = NULL;		/* Last last_pick */
-THING *last_pick = NULL;		/* Last object picked in get_item() */
+//THING *cur_armor;			/* What he is wearing */
+//THING *cur_ring[2];			/* Which rings are being worn */
+//THING *cur_weapon;			/* Which weapon he is wielding */
+//THING *l_last_pick = NULL;		/* Last last_pick */
+//THING *last_pick = NULL;		/* Last object picked in get_item() */
 THING *lvl_obj = NULL;			/* List of objects on this level */
 THING *mlist = NULL;			/* List of monsters on the level */
-THING player;				/* His stats */
+//THING player;				/* His stats */
+struct player *players = NULL; /* List of players in the game */
 					/* restart of game */
 
 WINDOW *hw = NULL;			/* used as a scratch window */

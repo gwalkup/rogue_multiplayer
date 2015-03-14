@@ -23,27 +23,27 @@ wear()
     register char *sp;
 
     if ((obj = get_item("wear", ARMOR)) == NULL)
-	return;
-    if (cur_armor != NULL)
+		return;
+    if (players[currplayer].cur_armor != NULL)
     {
-	addmsg("you are already wearing some");
-	if (!terse)
-	    addmsg(".  You'll have to take it off first");
-	endmsg();
-	after = FALSE;
-	return;
+		addmsg("you are already wearing some");
+		if (!terse)
+			addmsg(".  You'll have to take it off first");
+		endmsg();
+		after = FALSE;
+		return;
     }
     if (obj->o_type != ARMOR)
     {
-	msg("you can't wear that");
-	return;
+		msg("you can't wear that");
+		return;
     }
     waste_time();
     obj->o_flags |= ISKNOW;
     sp = inv_name(obj, TRUE);
-    cur_armor = obj;
+    players[currplayer].cur_armor = obj;
     if (!terse)
-	addmsg("you are now ");
+		addmsg("you are now ");
     msg("wearing %s", sp);
 }
 
@@ -56,22 +56,22 @@ take_off()
 {
     register THING *obj;
 
-    if ((obj = cur_armor) == NULL)
+    if ((obj = players[currplayer].cur_armor) == NULL)
     {
-	after = FALSE;
-	if (terse)
-		msg("not wearing armor");
-	else
-		msg("you aren't wearing any armor");
-	return;
+		after = FALSE;
+		if (terse)
+			msg("not wearing armor");
+		else
+			msg("you aren't wearing any armor");
+		return;
     }
-    if (!dropcheck(cur_armor))
-	return;
-    cur_armor = NULL;
+    if (!dropcheck(players[currplayer].cur_armor))
+		return;
+    players[currplayer].cur_armor = NULL;
     if (terse)
-	addmsg("was");
+		addmsg("was");
     else
-	addmsg("you used to be");
+		addmsg("you used to be");
     msg(" wearing %c) %s", obj->o_packch, inv_name(obj, TRUE));
 }
 

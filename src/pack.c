@@ -52,86 +52,86 @@ add_pack(THING *obj, bool silent)
 
     if (pack == NULL)
     {
-	pack = obj;
-	obj->o_packch = pack_char();
-	inpack++;
+		pack = obj;
+		obj->o_packch = pack_char();
+		players[currplayer].inpack++;
     }
     else
     {
-	lp = NULL;
-	for (op = pack; op != NULL; op = next(op))
-	{
-	    if (op->o_type != obj->o_type)
-		lp = op;
-	    else
-	    {
-		while (op->o_type == obj->o_type && op->o_which != obj->o_which)
+		lp = NULL;
+		for (op = pack; op != NULL; op = next(op))
 		{
-		    lp = op;
-		    if (next(op) == NULL)
-			break;
-		    else
-			op = next(op);
-		}
-		if (op->o_type == obj->o_type && op->o_which == obj->o_which)
-		{
-		    if (ISMULT(op->o_type))
-		    {
-			if (!pack_room(from_floor, obj))
-			    return;
-			op->o_count++;
-dump_it:
-			discard(obj);
-			obj = op;
-			lp = NULL;
-			goto out;
-		    }
-		    else if (obj->o_group)
-		    {
+			if (op->o_type != obj->o_type)
 			lp = op;
-			while (op->o_type == obj->o_type
-			    && op->o_which == obj->o_which
-			    && op->o_group != obj->o_group)
+			else
 			{
-			    lp = op;
-			    if (next(op) == NULL)
+			while (op->o_type == obj->o_type && op->o_which != obj->o_which)
+			{
+				lp = op;
+				if (next(op) == NULL)
 				break;
-			    else
+				else
 				op = next(op);
 			}
-			if (op->o_type == obj->o_type
-			    && op->o_which == obj->o_which
-			    && op->o_group == obj->o_group)
+			if (op->o_type == obj->o_type && op->o_which == obj->o_which)
 			{
-				op->o_count += obj->o_count;
-				inpack--;
+				if (ISMULT(op->o_type))
+				{
 				if (!pack_room(from_floor, obj))
-				    return;
-				goto dump_it;
+					return;
+				op->o_count++;
+	dump_it:
+				discard(obj);
+				obj = op;
+				lp = NULL;
+				goto out;
+				}
+				else if (obj->o_group)
+				{
+				lp = op;
+				while (op->o_type == obj->o_type
+					&& op->o_which == obj->o_which
+					&& op->o_group != obj->o_group)
+				{
+					lp = op;
+					if (next(op) == NULL)
+					break;
+					else
+					op = next(op);
+				}
+				if (op->o_type == obj->o_type
+					&& op->o_which == obj->o_which
+					&& op->o_group == obj->o_group)
+				{
+					op->o_count += obj->o_count;
+					players[currplayer].inpack--;
+					if (!pack_room(from_floor, obj))
+						return;
+					goto dump_it;
+				}
+				}
+				else
+					lp = op;
 			}
-		    }
-		    else
-			lp = op;
+	out:
+			break;
+			}
 		}
-out:
-		break;
-	    }
-	}
 
-	if (lp != NULL)
-	{
-	    if (!pack_room(from_floor, obj))
-		return;
-	    else
-	    {
-		obj->o_packch = pack_char();
-		next(obj) = next(lp);
-		prev(obj) = lp;
-		if (next(lp) != NULL)
-		    prev(next(lp)) = obj;
-		next(lp) = obj;
-	    }
-	}
+		if (lp != NULL)
+		{
+			if (!pack_room(from_floor, obj))
+			return;
+			else
+			{
+			obj->o_packch = pack_char();
+			next(obj) = next(lp);
+			prev(obj) = lp;
+			if (next(lp) != NULL)
+				prev(next(lp)) = obj;
+			next(lp) = obj;
+			}
+		}
     }
 
     obj->o_flags |= ISFOUND;
@@ -165,25 +165,25 @@ out:
 bool
 pack_room(bool from_floor, THING *obj)
 {
-    if (++inpack > MAXPACK)
+    if (++players[currplayer].inpack > MAXPACK)
     {
-	if (!terse)
-	    addmsg("there's ");
-	addmsg("no room");
-	if (!terse)
-	    addmsg(" in your pack");
-	endmsg();
-	if (from_floor)
-	    move_msg(obj);
-	inpack = MAXPACK;
-	return FALSE;
+		if (!terse)
+			addmsg("there's ");
+		addmsg("no room");
+		if (!terse)
+			addmsg(" in your pack");
+		endmsg();
+		if (from_floor)
+			move_msg(obj);
+		players[currplayer].inpack = MAXPACK;
+		return FALSE;
     }
 
     if (from_floor)
     {
-	detach(lvl_obj, obj);
-	mvaddch(hero.y, hero.x, floor_ch());
-	chat(hero.y, hero.x) = (proom->r_flags & ISGONE) ? PASSAGE : FLOOR;
+		detach(lvl_obj, obj);
+		mvaddch(hero.y, hero.x, floor_ch());
+		chat(hero.y, hero.x) = (proom->r_flags & ISGONE) ? PASSAGE : FLOOR;
     }
 
     return TRUE;
@@ -198,28 +198,28 @@ leave_pack(THING *obj, bool newobj, bool all)
 {
     THING *nobj;
 
-    inpack--;
+    players[currplayer].inpack--;
     nobj = obj;
     if (obj->o_count > 1 && !all)
     {
-	last_pick = obj;
-	obj->o_count--;
-	if (obj->o_group)
-	    inpack++;
-	if (newobj)
-	{
-	    nobj = new_item();
-	    *nobj = *obj;
-	    next(nobj) = NULL;
-	    prev(nobj) = NULL;
-	    nobj->o_count = 1;
-	}
+		players[currplayer].last_pick = obj;
+		obj->o_count--;
+		if (obj->o_group)
+			players[currplayer].inpack++;
+		if (newobj)
+		{
+			nobj = new_item();
+			*nobj = *obj;
+			next(nobj) = NULL;
+			prev(nobj) = NULL;
+			nobj->o_count = 1;
+		}
     }
     else
     {
-	last_pick = NULL;
-	pack_used[obj->o_packch - 'a'] = FALSE;
-	detach(pack, obj);
+		players[currplayer].last_pick = NULL;
+		pack_used[obj->o_packch - 'a'] = FALSE;
+		detach(pack, obj);
     }
     return nobj;
 }
@@ -296,12 +296,12 @@ pick_up(char ch)
 {
     THING *obj;
 
-    if (on(player, ISLEVIT))
+    if (on(players[currplayer].player, ISLEVIT))
 	return;
 
     obj = find_obj(hero.y, hero.x);
-    if (move_on)
-	move_msg(obj);
+    if (players[currplayer].move_on)
+		move_msg(obj);
     else
 	switch (ch)
 	{
@@ -388,56 +388,56 @@ get_item(char *purpose, int type)
     char ch;
 
     if (pack == NULL)
-	msg("you aren't carrying anything");
-    else if (again)
-	if (last_pick)
-	    return last_pick;
-	else
-	    msg("you ran out");
+		msg("you aren't carrying anything");
+    else if (players[currplayer].again)
+		if (players[currplayer].last_pick)
+			return players[currplayer].last_pick;
+		else
+			msg("you ran out");
     else
     {
-	for (;;)
-	{
-	    if (!terse)
-		addmsg("which object do you want to ");
-	    addmsg(purpose);
-	    if (terse)
-		addmsg(" what");
-	    msg("? (* for list): ");
-	    ch = readchar();
-	    mpos = 0;
-	    /*
-	     * Give the poor player a chance to abort the command
-	     */
-	    if (ch == ESCAPE)
-	    {
-		reset_last();
-		after = FALSE;
-		msg("");
-		return NULL;
-	    }
-	    n_objs = 1;		/* normal case: person types one char */
-	    if (ch == '*')
-	    {
-		mpos = 0;
-		if (inventory(pack, type) == 0)
+		for (;;)
 		{
-		    after = FALSE;
-		    return NULL;
+			if (!terse)
+				addmsg("which object do you want to ");
+			addmsg(purpose);
+			if (terse)
+				addmsg(" what");
+			msg("? (* for list): ");
+			ch = readchar();
+			mpos = 0;
+			/*
+			 * Give the poor player a chance to abort the command
+			 */
+			if (ch == ESCAPE)
+			{
+				reset_last();
+				after = FALSE;
+				msg("");
+				return NULL;
+			}
+			n_objs = 1;		/* normal case: person types one char */
+			if (ch == '*')
+			{
+				mpos = 0;
+				if (inventory(pack, type) == 0)
+				{
+					after = FALSE;
+					return NULL;
+				}
+				continue;
+			}
+			for (obj = pack; obj != NULL; obj = next(obj))
+				if (obj->o_packch == ch)
+					break;
+			if (obj == NULL)
+			{
+				msg("'%s' is not a valid item",unctrl(ch));
+				continue;
+			}
+			else 
+			return obj;
 		}
-		continue;
-	    }
-	    for (obj = pack; obj != NULL; obj = next(obj))
-		if (obj->o_packch == ch)
-		    break;
-	    if (obj == NULL)
-	    {
-		msg("'%s' is not a valid item",unctrl(ch));
-		continue;
-	    }
-	    else 
-		return obj;
-	}
     }
     return NULL;
 }
@@ -499,5 +499,5 @@ reset_last()
 {
     last_comm = l_last_comm;
     last_dir = l_last_dir;
-    last_pick = l_last_pick;
+    players[currplayer].last_pick = players[currplayer].l_last_pick;
 }

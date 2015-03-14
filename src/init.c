@@ -26,7 +26,7 @@ init_player()
     register THING *obj;
 
     pstats = max_stats;
-    food_left = HUNGERTIME;
+    players[currplayer].food_left = HUNGERTIME;
     /*
      * Give him some food
      */
@@ -43,7 +43,7 @@ init_player()
     obj->o_arm = a_class[RING_MAIL] - 1;
     obj->o_flags |= ISKNOW;
     obj->o_count = 1;
-    cur_armor = obj;
+    players[currplayer].cur_armor = obj;
     add_pack(obj, TRUE);
     /*
      * Give him his weaponry.  First a mace.
@@ -54,7 +54,7 @@ init_player()
     obj->o_dplus = 1;
     obj->o_flags |= ISKNOW;
     add_pack(obj, TRUE);
-    cur_weapon = obj;
+    players[currplayer].cur_weapon = obj;
     /*
      * Now a +1 bow
      */
@@ -443,5 +443,5 @@ badcheck(char *name, struct obj_info *info, int bound)
 char *
 pick_color(char *col)
 {
-    return (on(player, ISHALU) ? rainbow[rnd(NCOLORS)] : col);
+    return (on(players[currplayer].player, ISHALU) ? rainbow[rnd(NCOLORS)] : col);
 }

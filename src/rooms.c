@@ -380,7 +380,7 @@ enter_room(coord *cp)
 
     rp = proom = roomin(cp);
     door_open(rp);
-    if (!(rp->r_flags & ISDARK) && !on(player, ISBLIND))
+    if (!(rp->r_flags & ISDARK) && !on(players[currplayer].player, ISBLIND))
 	for (y = rp->r_pos.y; y < rp->r_max.y + rp->r_pos.y; y++)
 	{
 	    move(y, rp->r_pos.x);
@@ -397,7 +397,7 @@ enter_room(coord *cp)
 		{
 		    tp->t_oldch = ch;
 		    if (!see_monst(tp))
-			if (on(player, SEEMONST))
+			if (on(players[currplayer].player, SEEMONST))
 			{
 			    standout();
 			    addch(tp->t_disguise);
@@ -433,7 +433,7 @@ leave_room(coord *cp)
 
     if (rp->r_flags & ISGONE)
 	floor = PASSAGE;
-    else if (!(rp->r_flags & ISDARK) || on(player, ISBLIND))
+    else if (!(rp->r_flags & ISDARK) || on(players[currplayer].player, ISBLIND))
 	floor = FLOOR;
     else
 	floor = ' ';
@@ -456,15 +456,15 @@ leave_room(coord *cp)
 		     */
 		    if (isupper(toascii(ch)))
 		    {
-			if (on(player, SEEMONST))
-			{
-			    standout();
-			    addch(ch);
-			    standend();
-			    break;
-			}
-                        pp = INDEX(y,x);
-			addch(pp->p_ch == DOOR ? DOOR : floor);
+				if (on(players[currplayer].player, SEEMONST))
+				{
+					standout();
+					addch(ch);
+					standend();
+					break;
+				}
+							pp = INDEX(y,x);
+				addch(pp->p_ch == DOOR ? DOOR : floor);
 		    }
 	    }
 	}

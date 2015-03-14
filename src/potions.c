@@ -76,13 +76,13 @@ quaff()
 	    msg("that's undrinkable");
 	return;
     }
-    if (obj == cur_weapon)
-	cur_weapon = NULL;
+    if (obj == players[currplayer].cur_weapon)
+	players[currplayer].cur_weapon = NULL;
 
     /*
      * Calculate the effect it has on the poor guy.
      */
-    trip = on(player, ISHALU);
+    trip = on(players[currplayer].player, ISHALU);
     discardit = (bool)(obj->o_count == 1);
     leave_pack(obj, FALSE, FALSE);
     switch (obj->o_which)
@@ -110,7 +110,7 @@ quaff()
 	    chg_str(1);
 	    msg("you feel stronger, now.  What bulging muscles!");
 	when P_MFIND:
-	    player.t_flags |= SEEMONST;
+	    players[currplayer].player.t_flags |= SEEMONST;
 	    fuse((void(*)())turn_see, TRUE, HUHDURATION, AFTER);
 	    if (!turn_see(FALSE))
 		msg("you have a %s feeling for a moment, then it passes",
@@ -157,15 +157,15 @@ quaff()
 	when P_LSD:
 	    if (!trip)
 	    {
-		if (on(player, SEEMONST))
-		    turn_see(FALSE);
-		start_daemon(visuals, 0, BEFORE);
-		seenstairs = seen_stairs();
+			if (on(players[currplayer].player, SEEMONST))
+				turn_see(FALSE);
+			start_daemon(visuals, 0, BEFORE);
+			players[currplayer].seenstairs = seen_stairs();
 	    }
 	    do_pot(P_LSD, TRUE);
 	when P_SEEINVIS:
 	    sprintf(prbuf, "this potion tastes like %s juice", fruit);
-	    show = on(player, CANSEE);
+	    show = on(players[currplayer].player, CANSEE);
 	    do_pot(P_SEEINVIS, FALSE);
 	    if (!show)
 		invis_on();
@@ -192,15 +192,15 @@ quaff()
 		msg("you feel yourself moving much faster");
 	when P_RESTORE:
 	    if (ISRING(LEFT, R_ADDSTR))
-		add_str(&pstats.s_str, -cur_ring[LEFT]->o_arm);
+		add_str(&pstats.s_str, -players[currplayer].cur_ring[LEFT]->o_arm);
 	    if (ISRING(RIGHT, R_ADDSTR))
-		add_str(&pstats.s_str, -cur_ring[RIGHT]->o_arm);
+		add_str(&pstats.s_str, -players[currplayer].cur_ring[RIGHT]->o_arm);
 	    if (pstats.s_str < max_stats.s_str)
 		pstats.s_str = max_stats.s_str;
 	    if (ISRING(LEFT, R_ADDSTR))
-		add_str(&pstats.s_str, cur_ring[LEFT]->o_arm);
+		add_str(&pstats.s_str, players[currplayer].cur_ring[LEFT]->o_arm);
 	    if (ISRING(RIGHT, R_ADDSTR))
-		add_str(&pstats.s_str, cur_ring[RIGHT]->o_arm);
+		add_str(&pstats.s_str, players[currplayer].cur_ring[RIGHT]->o_arm);
 	    msg("hey, this tastes great.  It make you feel warm all over");
 	when P_BLIND:
 	    do_pot(P_BLIND, TRUE);
@@ -257,9 +257,9 @@ invis_on()
 {
     THING *mp;
 
-    player.t_flags |= CANSEE;
+    players[currplayer].player.t_flags |= CANSEE;
     for (mp = mlist; mp != NULL; mp = next(mp))
-	if (on(*mp, ISINVIS) && see_monst(mp) && !on(player, ISHALU))
+	if (on(*mp, ISINVIS) && see_monst(mp) && !on(players[currplayer].player, ISHALU))
 	    mvaddch(mp->t_pos.y, mp->t_pos.x, mp->t_disguise);
 }
 
@@ -287,7 +287,7 @@ turn_see(bool turn_off)
 	{
 	    if (!can_see)
 		standout();
-	    if (!on(player, ISHALU))
+	    if (!on(players[currplayer].player, ISHALU))
 		addch(mp->t_type);
 	    else
 		addch(rnd(26) + 'A');
@@ -299,9 +299,9 @@ turn_see(bool turn_off)
 	}
     }
     if (turn_off)
-	player.t_flags &= ~SEEMONST;
+	players[currplayer].player.t_flags &= ~SEEMONST;
     else
-	player.t_flags |= SEEMONST;
+	players[currplayer].player.t_flags |= SEEMONST;
     return add_new;
 }
 
@@ -328,7 +328,7 @@ seen_stairs()
 	if (see_monst(tp) && on(*tp, ISRUN))	/* if it's visible and awake */
 	    return TRUE;			/* it must have moved there */
 
-	if (on(player, SEEMONST)		/* if she can detect monster */
+	if (on(players[currplayer].player, SEEMONST)		/* if she can detect monster */
 	    && tp->t_oldch == STAIRS)		/* and there once were stairs */
 		return TRUE;			/* it must have moved there */
     }
@@ -363,9 +363,9 @@ do_pot(int type, bool knowit)
     if (!pot_info[type].oi_know)
 	pot_info[type].oi_know = knowit;
     t = spread(pp->pa_time);
-    if (!on(player, pp->pa_flags))
+    if (!on(players[currplayer].player, pp->pa_flags))
     {
-	player.t_flags |= pp->pa_flags;
+	players[currplayer].player.t_flags |= pp->pa_flags;
 	fuse(pp->pa_daemon, 0, t, AFTER);
 	look(FALSE);
     }

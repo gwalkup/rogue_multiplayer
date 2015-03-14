@@ -45,14 +45,14 @@ ring_on()
     if (is_current(obj))
 	return;
 
-    if (cur_ring[LEFT] == NULL && cur_ring[RIGHT] == NULL)
+    if (players[currplayer].cur_ring[LEFT] == NULL && players[currplayer].cur_ring[RIGHT] == NULL)
     {
 	if ((ring = gethand()) < 0)
 	    return;
     }
-    else if (cur_ring[LEFT] == NULL)
+    else if (players[currplayer].cur_ring[LEFT] == NULL)
 	ring = LEFT;
-    else if (cur_ring[RIGHT] == NULL)
+    else if (players[currplayer].cur_ring[RIGHT] == NULL)
 	ring = RIGHT;
     else
     {
@@ -62,7 +62,7 @@ ring_on()
 	    msg("wearing two");
 	return;
     }
-    cur_ring[ring] = obj;
+    players[currplayer].cur_ring[ring] = obj;
 
     /*
      * Calculate the effect it has on the poor guy.
@@ -96,7 +96,7 @@ ring_off()
     int ring;
     THING *obj;
 
-    if (cur_ring[LEFT] == NULL && cur_ring[RIGHT] == NULL)
+    if (players[currplayer].cur_ring[LEFT] == NULL && players[currplayer].cur_ring[RIGHT] == NULL)
     {
 	if (terse)
 	    msg("no rings");
@@ -104,15 +104,15 @@ ring_off()
 	    msg("you aren't wearing any rings");
 	return;
     }
-    else if (cur_ring[LEFT] == NULL)
+    else if (players[currplayer].cur_ring[LEFT] == NULL)
 	ring = RIGHT;
-    else if (cur_ring[RIGHT] == NULL)
+    else if (players[currplayer].cur_ring[RIGHT] == NULL)
 	ring = LEFT;
     else
 	if ((ring = gethand()) < 0)
 	    return;
     mpos = 0;
-    obj = cur_ring[ring];
+    obj = players[currplayer].cur_ring[ring];
     if (obj == NULL)
     {
 	msg("not wearing such a ring");
@@ -170,7 +170,7 @@ ring_eat(int hand)
 	 1,	/* R_STEALTH */		 1	/* R_SUSTARM */
     };
 
-    if ((ring = cur_ring[hand]) == NULL)
+    if ((ring = players[currplayer].cur_ring[hand]) == NULL)
 	return 0;
     if ((eat = uses[ring->o_which]) < 0)
 	eat = (rnd(-eat) == 0);

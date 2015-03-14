@@ -4,6 +4,6 @@ MAKEFILE 	= Makefile.std
 
 rogue:
 	$(MAKE) -C ./src -f $(MAKEFILE) MINGW=$(MINGW) MAKEFILE="-f $(MAKEFILE)" dist.mingw32
-	cp ./src/rogue54.exe ./
-	cp ./src/rogue54.doc ./
-	cp ./src/rogue54.html ./
+	mv ./src/rogue54.exe ./
+	mv ./src/rogue54.doc ./
+	mv ./src/rogue54.html ./

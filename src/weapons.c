@@ -228,32 +228,32 @@ wield()
     THING *obj, *oweapon;
     char *sp;
 
-    oweapon = cur_weapon;
-    if (!dropcheck(cur_weapon))
+    oweapon = players[currplayer].cur_weapon;
+    if (!dropcheck(players[currplayer].cur_weapon))
     {
-	cur_weapon = oweapon;
+	players[currplayer].cur_weapon = oweapon;
 	return;
     }
-    cur_weapon = oweapon;
+    players[currplayer].cur_weapon = oweapon;
     if ((obj = get_item("wield", WEAPON)) == NULL)
     {
 bad:
-	after = FALSE;
-	return;
+		after = FALSE;
+		return;
     }
 
     if (obj->o_type == ARMOR)
     {
-	msg("you can't wield armor");
-	goto bad;
+		msg("you can't wield armor");
+		goto bad;
     }
     if (is_current(obj))
         goto bad;
 
     sp = inv_name(obj, TRUE);
-    cur_weapon = obj;
+    players[currplayer].cur_weapon = obj;
     if (!terse)
-	addmsg("you are now ");
+		addmsg("you are now ");
     msg("wielding %s (%c)", sp, obj->o_packch);
 }
 

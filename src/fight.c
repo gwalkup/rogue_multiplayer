@@ -80,49 +80,49 @@ fight(coord *mp, THING *weap, bool thrown)
      * Since we are fighting, things are not quiet so no healing takes
      * place.
      */
-    count = 0;
-    quiet = 0;
+    players[currplayer].count = 0;
+    players[currplayer].quiet = 0;
     runto(mp);
     /*
      * Let him know it was really a xeroc (if it was one).
      */
     ch = '\0';
-    if (tp->t_type == 'X' && tp->t_disguise != 'X' && !on(player, ISBLIND))
+    if (tp->t_type == 'X' && tp->t_disguise != 'X' && !on(players[currplayer].player, ISBLIND))
     {
-	tp->t_disguise = 'X';
-	if (on(player, ISHALU)) {
-	    ch = (char)(rnd(26) + 'A');
-	    mvaddch(tp->t_pos.y, tp->t_pos.x, ch);
-	}
-	msg(choose_str("heavy!  That's a nasty critter!",
-		       "wait!  That's a xeroc!"));
-	if (!thrown)
-	    return FALSE;
+		tp->t_disguise = 'X';
+		if (on(players[currplayer].player, ISHALU)) {
+			ch = (char)(rnd(26) + 'A');
+			mvaddch(tp->t_pos.y, tp->t_pos.x, ch);
+		}
+		msg(choose_str("heavy!  That's a nasty critter!",
+				   "wait!  That's a xeroc!"));
+		if (!thrown)
+			return FALSE;
     }
     mname = set_mname(tp);
     did_hit = FALSE;
-    has_hit = (terse && !to_death);
-    if (roll_em(&player, tp, weap, thrown))
+    has_hit = (terse && !players[currplayer].to_death);
+    if (roll_em(&players[currplayer].player, tp, weap, thrown))
     {
-	did_hit = FALSE;
-	if (thrown)
-	    thunk(weap, mname, terse);
-	else
-	    hit((char *) NULL, mname, terse);
-	if (on(player, CANHUH))
-	{
-	    did_hit = TRUE;
-	    tp->t_flags |= ISHUH;
-	    player.t_flags &= ~CANHUH;
-	    endmsg();
-	    has_hit = FALSE;
-	    msg("your hands stop glowing %s", pick_color("red"));
-	}
-	if (tp->t_stats.s_hpt <= 0)
-	    killed(tp, TRUE);
-	else if (did_hit && !on(player, ISBLIND))
-	    msg("%s appears confused", mname);
-	did_hit = TRUE;
+		did_hit = FALSE;
+		if (thrown)
+			thunk(weap, mname, terse);
+		else
+			hit((char *) NULL, mname, terse);
+		if (on(players[currplayer].player, CANHUH))
+		{
+			did_hit = TRUE;
+			tp->t_flags |= ISHUH;
+			players[currplayer].player.t_flags &= ~CANHUH;
+			endmsg();
+			has_hit = FALSE;
+			msg("your hands stop glowing %s", pick_color("red"));
+		}
+		if (tp->t_stats.s_hpt <= 0)
+			killed(tp, TRUE);
+		else if (did_hit && !on(players[currplayer].player, ISBLIND))
+			msg("%s appears confused", mname);
+		did_hit = TRUE;
     }
     else
 	if (thrown)
@@ -146,23 +146,23 @@ attack(THING *mp)
      * Since this is an attack, stop running and any healing that was
      * going on at the time.
      */
-    running = FALSE;
-    count = 0;
-    quiet = 0;
-    if (to_death && !on(*mp, ISTARGET))
+    players[currplayer].running = FALSE;
+    players[currplayer].count = 0;
+    players[currplayer].quiet = 0;
+    if (players[currplayer].to_death && !on(*mp, ISTARGET))
     {
-	to_death = FALSE;
-	kamikaze = FALSE;
+		players[currplayer].to_death = FALSE;
+		players[currplayer].kamikaze = FALSE;
     }
-    if (mp->t_type == 'X' && mp->t_disguise != 'X' && !on(player, ISBLIND))
+    if (mp->t_type == 'X' && mp->t_disguise != 'X' && !on(players[currplayer].player, ISBLIND))
     {
-	mp->t_disguise = 'X';
-	if (on(player, ISHALU))
-	    mvaddch(mp->t_pos.y, mp->t_pos.x, rnd(26) + 'A');
+		mp->t_disguise = 'X';
+		if (on(players[currplayer].player, ISHALU))
+			mvaddch(mp->t_pos.y, mp->t_pos.x, rnd(26) + 'A');
     }
     mname = set_mname(mp);
     oldhp = pstats.s_hpt;
-    if (roll_em(mp, &player, (THING *) NULL, FALSE))
+    if (roll_em(mp, &players[currplayer].player, (THING *) NULL, FALSE))
     {
 	if (mp->t_type != 'I')
 	{
@@ -170,19 +170,18 @@ attack(THING *mp)
 		addmsg(".  ");
 	    hit(mname, (char *) NULL, FALSE);
 	}
-	else
-	    if (has_hit)
+	else if (has_hit)
 		endmsg();
 	has_hit = FALSE;
 	if (pstats.s_hpt <= 0)
 	    death(mp->t_type);	/* Bye bye life ... */
-	else if (!kamikaze)
+	else if (!players[currplayer].kamikaze)
 	{
 	    oldhp -= pstats.s_hpt;
 	    if (oldhp > max_hit)
 		max_hit = oldhp;
 	    if (pstats.s_hpt <= max_hit)
-		to_death = FALSE;
+		players[currplayer].to_death = FALSE;
 	}
 	if (!on(*mp, ISCANC))
 	    switch (mp->t_type)
@@ -191,22 +190,22 @@ attack(THING *mp)
 		    /*
 		     * If an aquator hits, you can lose armor class.
 		     */
-		    rust_armor(cur_armor);
+		    rust_armor(players[currplayer].cur_armor);
 		when 'I':
 		    /*
 		     * The ice monster freezes you
 		     */
-		    player.t_flags &= ~ISRUN;
-		    if (!no_command)
+		    players[currplayer].player.t_flags &= ~ISRUN;
+		    if (!players[currplayer].no_command)
 		    {
-			addmsg("you are frozen");
-			if (!terse)
-			    addmsg(" by the %s", mname);
-			endmsg();
+				addmsg("you are frozen");
+				if (!terse)
+					addmsg(" by the %s", mname);
+				endmsg();
 		    }
-		    no_command += rnd(2) + 2;
-		    if (no_command > BORE_LEVEL)
-			death('h');
+		    players[currplayer].no_command += rnd(2) + 2;
+		    if (players[currplayer].no_command > BORE_LEVEL)
+				death('h');
 		when 'R':
 		    /*
 		     * Rattlesnakes have poisonous bites
@@ -221,7 +220,7 @@ attack(THING *mp)
 			    else
 				msg("a bite has weakened you");
 			}
-			else if (!to_death)
+			else if (!players[currplayer].to_death)
 			{
 			    if (!terse)
 				msg("a bite momentarily weakens you");
@@ -266,8 +265,8 @@ attack(THING *mp)
 		    /*
 		     * Venus Flytrap stops the poor guy from moving
 		     */
-		    player.t_flags |= ISHELD;
-		    sprintf(monsters['F'-'A'].m_stats.s_dmg,"%dx1", ++vf_hit);
+		    players[currplayer].player.t_flags |= ISHELD;
+		    sprintf(monsters['F'-'A'].m_stats.s_dmg,"%dx1", ++players[currplayer].vf_hit);
 		    if (--pstats.s_hpt <= 0)
 			death('F');
 		when 'L':
@@ -299,8 +298,8 @@ attack(THING *mp)
 		     */
 		    steal = NULL;
 		    for (nobj = 0, obj = pack; obj != NULL; obj = next(obj))
-			if (obj != cur_armor && obj != cur_weapon
-			    && obj != cur_ring[LEFT] && obj != cur_ring[RIGHT]
+			if (obj != players[currplayer].cur_armor && obj != players[currplayer].cur_weapon
+			    && obj != players[currplayer].cur_ring[LEFT] && obj != players[currplayer].cur_ring[RIGHT]
 			    && is_magic(obj) && rnd(++nobj) == 0)
 				steal = obj;
 		    if (steal != NULL)
@@ -325,15 +324,15 @@ attack(THING *mp)
 	}
 	if (mp->t_type == 'F')
 	{
-	    pstats.s_hpt -= vf_hit;
+	    pstats.s_hpt -= players[currplayer].vf_hit;
 	    if (pstats.s_hpt <= 0)
 		death(mp->t_type);	/* Bye bye life ... */
 	}
 	miss(mname, (char *) NULL, FALSE);
     }
-    if (fight_flush && !to_death)
+    if (fight_flush && !players[currplayer].to_death)
 	flush_type();
-    count = 0;
+    players[currplayer].count = 0;
     status();
     if (mp == NULL)
         return(-1);
@@ -352,9 +351,9 @@ set_mname(THING *tp)
     char *mname;
     static char tbuf[MAXSTR] = { 't', 'h', 'e', ' ' };
 
-    if (!see_monst(tp) && !on(player, SEEMONST))
+    if (!see_monst(tp) && !on(players[currplayer].player, SEEMONST))
 	return (terse ? "it" : "something");
-    else if (on(player, ISHALU))
+    else if (on(players[currplayer].player, ISHALU))
     {
 	move(tp->t_pos.y, tp->t_pos.x);
 	ch = toascii(inch());
@@ -410,26 +409,26 @@ roll_em(THING *thatt, THING *thdef, THING *weap, bool hurl)
     {
 	hplus = (weap == NULL ? 0 : weap->o_hplus);
 	dplus = (weap == NULL ? 0 : weap->o_dplus);
-	if (weap == cur_weapon)
+	if (weap == players[currplayer].cur_weapon)
 	{
 	    if (ISRING(LEFT, R_ADDDAM))
-		dplus += cur_ring[LEFT]->o_arm;
+		dplus += players[currplayer].cur_ring[LEFT]->o_arm;
 	    else if (ISRING(LEFT, R_ADDHIT))
-		hplus += cur_ring[LEFT]->o_arm;
+		hplus += players[currplayer].cur_ring[LEFT]->o_arm;
 	    if (ISRING(RIGHT, R_ADDDAM))
-		dplus += cur_ring[RIGHT]->o_arm;
+		dplus += players[currplayer].cur_ring[RIGHT]->o_arm;
 	    else if (ISRING(RIGHT, R_ADDHIT))
-		hplus += cur_ring[RIGHT]->o_arm;
+		hplus += players[currplayer].cur_ring[RIGHT]->o_arm;
 	}
 	cp = weap->o_damage;
 	if (hurl)
 	{
-	    if ((weap->o_flags&ISMISL) && cur_weapon != NULL &&
-	      cur_weapon->o_which == weap->o_launch)
+	    if ((weap->o_flags&ISMISL) && players[currplayer].cur_weapon != NULL &&
+	      players[currplayer].cur_weapon->o_which == weap->o_launch)
 	    {
 		cp = weap->o_hurldmg;
-		hplus += cur_weapon->o_hplus;
-		dplus += cur_weapon->o_dplus;
+		hplus += players[currplayer].cur_weapon->o_hplus;
+		dplus += players[currplayer].cur_weapon->o_dplus;
 	    }
 	    else if (weap->o_launch < 0)
 		cp = weap->o_hurldmg;
@@ -444,12 +443,12 @@ roll_em(THING *thatt, THING *thdef, THING *weap, bool hurl)
     def_arm = def->s_arm;
     if (def == &pstats)
     {
-	if (cur_armor != NULL)
-	    def_arm = cur_armor->o_arm;
+	if (players[currplayer].cur_armor != NULL)
+	    def_arm = players[currplayer].cur_armor->o_arm;
 	if (ISRING(LEFT, R_PROTECT))
-	    def_arm -= cur_ring[LEFT]->o_arm;
+	    def_arm -= players[currplayer].cur_ring[LEFT]->o_arm;
 	if (ISRING(RIGHT, R_PROTECT))
-	    def_arm -= cur_ring[RIGHT]->o_arm;
+	    def_arm -= players[currplayer].cur_ring[RIGHT]->o_arm;
     }
     while(cp != NULL && *cp != '\0')
     {
@@ -503,7 +502,7 @@ prname(char *mname, bool upper)
 void
 thunk(THING *weap, char *mname, bool noend)
 {
-    if (to_death)
+    if (players[currplayer].to_death)
 	return;
     if (weap->o_type == WEAPON)
 	addmsg("the %s hits ", weap_info[weap->o_which].oi_name);
@@ -526,8 +525,8 @@ hit(char *er, char *ee, bool noend)
     char *s;
     extern char *h_names[];
 
-    if (to_death)
-	return;
+    if (players[currplayer].to_death)
+		return;
     addmsg(prname(er, TRUE));
     if (terse)
 	s = " hit";
@@ -555,20 +554,20 @@ miss(char *er, char *ee, bool noend)
     int i;
     extern char *m_names[];
 
-    if (to_death)
-	return;
+    if (players[currplayer].to_death)
+		return;
     addmsg(prname(er, TRUE));
     if (terse)
-	i = 0;
+		i = 0;
     else
-	i = rnd(4);
+		i = rnd(4);
     if (er != NULL)
-	i += 4;
+		i += 4;
     addmsg(m_names[i]);
     if (!terse)
-	addmsg(" %s", prname(ee, FALSE));
+		addmsg(" %s", prname(ee, FALSE));
     if (!noend)
-	endmsg();
+		endmsg();
 }
 
 /*
@@ -578,15 +577,15 @@ miss(char *er, char *ee, bool noend)
 void
 bounce(THING *weap, char *mname, bool noend)
 {
-    if (to_death)
-	return;
+    if (players[currplayer].to_death)
+		return;
     if (weap->o_type == WEAPON)
-	addmsg("the %s misses ", weap_info[weap->o_which].oi_name);
+		addmsg("the %s misses ", weap_info[weap->o_which].oi_name);
     else
-	addmsg("you missed ");
-    addmsg(mname);
+		addmsg("you missed ");
+		addmsg(mname);
     if (!noend)
-	endmsg();
+		endmsg();
 }
 
 /*
@@ -613,10 +612,10 @@ remove_mon(coord *mp, THING *tp, bool waskill)
     detach(mlist, tp);
     if (on(*tp, ISTARGET))
     {
-	kamikaze = FALSE;
-	to_death = FALSE;
-	if (fight_flush)
-	    flush_type();
+		players[currplayer].kamikaze = FALSE;
+		players[currplayer].to_death = FALSE;
+		if (fight_flush)
+			flush_type();
     }
     discard(tp);
 }
@@ -638,8 +637,8 @@ killed(THING *tp, bool pr)
     switch (tp->t_type)
     {
 	case 'F':
-	    player.t_flags &= ~ISHELD;
-	    vf_hit = 0;
+	    players[currplayer].player.t_flags &= ~ISHELD;
+	    players[currplayer].vf_hit = 0;
 	    strcpy(monsters['F'-'A'].m_stats.s_dmg, "000x0");
 	when 'L':
 	{
